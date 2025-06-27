@@ -125,11 +125,11 @@ export default function Sidebar() {
     setCurrentRepo(repo);
   };
 
-  const fetchRepoContents = useCallback(async (path = "") => {
-    if (!session?.accessToken || !currentOwner || !currentRepo) return [];
+  const fetchRepoContents = useCallback(async (path = "", owner = currentOwner, repo = currentRepo) => {
+    if (!session?.accessToken || !owner || !repo) return [];
 
     try {
-      const response = await fetch(`/api/repos/${currentOwner}/${currentRepo}/${path}?ref=${currentBranch}`);
+      const response = await fetch(`/api/repos/${owner}/${repo}/${path}?ref=${currentBranch}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
