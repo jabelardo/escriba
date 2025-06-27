@@ -7,10 +7,7 @@ import "react-mde/lib/styles/css/react-mde-toolbar.css"
 import "react-mde/lib/styles/css/react-mde.css"
 import * as Showdown from "showdown"
 
-interface MarkdownEditorProps {
-  value: string
-  onChange: (value: string) => void
-}
+import { useMarkdown } from "@/context/MarkdownContext";
 
 const converter = new Showdown.Converter({
   tables: true,
@@ -19,15 +16,16 @@ const converter = new Showdown.Converter({
   tasklists: true,
 })
 
-export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps) {
+export default function MarkdownEditor() {
+  const { markdownContent, setMarkdownContent } = useMarkdown();
   const [selectedTab, setSelectedTab] = React.useState<"write" | "preview">(
     "write"
   )
 
   return (
     <ReactMde
-      value={value}
-      onChange={onChange}
+      value={markdownContent}
+      onChange={setMarkdownContent}
       selectedTab={selectedTab}
       onTabChange={setSelectedTab}
       generateMarkdownPreview={(markdown) =>

@@ -7,6 +7,8 @@ import { redirect } from "next/navigation"
 import { useEffect, useState } from "react"
 import MarkdownEditor from "@/components/MarkdownEditor"
 import { loadConfig } from "@/lib/configStorage"
+import { useMarkdown } from "@/context/MarkdownContext"
+import { useProject } from "@/context/ProjectContext"
 
 interface RepoFile {
   name: string
@@ -25,14 +27,14 @@ export default function Project() {
       redirect("/")
     },
   })
+  const { markdownContent, currentFilePath, currentFileSha, setCurrentFilePath, setCurrentFileSha, currentBranch, selectedContextFiles, toggleContextFile } = useMarkdown();
+  const { setCurrentOwner, setCurrentRepo } = useProject();
   const [files, setFiles] = useState<RepoFile[]>([])
-  const [selectedFileContent, setSelectedFileContent] = useState("")
-  const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null)
-  const [selectedFileSha, setSelectedFileSha] = useState<string | null>(null)
-  const [selectedContextFiles, setSelectedContextFiles] = useState<string[]>([])
 
   useEffect(() => {
     if (session) {
+      setCurrentOwner(session.user?.username || null);
+      setCurrentRepo(params.projectName);
       const fetchFiles = async () => {
         const res = await fetch(
           `/api/repos/${session.user?.username}/${params.projectName}`
@@ -44,57 +46,42 @@ export default function Project() {
       }
       fetchFiles()
     }
-  }, [session, params.projectName])
-
-  useEffect(() => {
-    if (selectedFilePath && session) {
-      const fetchFileContent = async () => {
-        const res = await fetch(
-          `/api/repos/${session.user?.username}/${params.projectName}/${selectedFilePath}`
-        )
-        if (res.ok) {
-          const data = await res.json()
-          setSelectedFileContent(data.content)
-          setSelectedFileSha(data.sha)
-        }
-      }
-      fetchFileContent()
-    }
-  }, [selectedFilePath, session, params.projectName])
+  }, [session, params.projectName, setCurrentOwner, setCurrentRepo])
 
   const handleFileClick = (file: RepoFile) => {
     if (file.type === "file") {
-      setSelectedFilePath(file.path)
+      setCurrentFilePath(file.path)
+      setCurrentFileSha(file.sha || null)
     }
   }
 
   const handleContextToggle = (filePath: string) => {
-    setSelectedContextFiles((prevSelected) =>
-      prevSelected.includes(filePath)
-        ? prevSelected.filter((path) => path !== filePath)
-        : [...prevSelected, filePath]
-    )
+    toggleContextFile(filePath);
   }
 
+  const [directPush, setDirectPush] = useState(false);
+
   const handleSave = async () => {
-    if (selectedFilePath && selectedFileSha && session) {
+    if (currentFilePath && currentFileSha && session) {
       const res = await fetch(
-        `/api/repos/${session.user?.username}/${params.projectName}/${selectedFilePath}`,
+        `/api/repos/${session.user?.username}/${params.projectName}/${currentFilePath}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            content: selectedFileContent,
-            sha: selectedFileSha,
-            message: `Update ${selectedFilePath}`,
+            content: markdownContent,
+            sha: currentFileSha,
+            message: `Update ${currentFilePath}`,
+            directPush: directPush,
+            branch: currentBranch,
           }),
         }
       )
 
       if (res.ok) {
-        alert("File saved and pull request created!")
+        alert(`File saved and ${directPush ? 'pushed directly' : 'pull request created'}!`);
       } else {
         alert("Error saving file.")
       }
@@ -104,15 +91,31 @@ export default function Project() {
   const handleLLMInteraction = async (promptType: "continue" | "review") => {
     const llmConfig = loadConfig(); // Load config from local storage
 
-    // TODO: Fetch content of selectedContextFiles
+    const contextFilesContent: { path: string; content: string }[] = [];
+    for (const filePath of selectedContextFiles) {
+      try {
+        const res = await fetch(
+          `/api/repos/${session.user?.username}/${params.projectName}/${filePath}?ref=${currentBranch}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          contextFilesContent.push({ path: filePath, content: data.content });
+        } else {
+          console.error(`Error fetching context file ${filePath}:`, res.statusText);
+        }
+      } catch (error) {
+        console.error(`Error fetching context file ${filePath}:`, error);
+      }
+    }
+
     const res = await fetch("/api/llm", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        selectedContextFiles,
-        currentContent: selectedFileContent,
+        selectedContextFiles: contextFilesContent,
+        currentContent: markdownContent,
         promptType,
         userPrompt: "", // User can add specific prompt later
         llmConfig, // Pass the config to the server
@@ -121,7 +124,7 @@ export default function Project() {
 
     if (res.ok) {
       const data = await res.json()
-      setSelectedFileContent(data.generatedText)
+      // setMarkdownContent(data.generatedText) // This should update the context
     } else {
       alert("Error interacting with LLM.")
     }
@@ -149,17 +152,23 @@ export default function Project() {
         </ul>
       </div>
       <div className="col-span-9 p-4">
-        <MarkdownEditor
-          value={selectedFileContent}
-          onChange={setSelectedFileContent}
-        />
-        <div className="mt-4 flex space-x-2">
+        <MarkdownEditor />
+        <div className="mt-4 flex items-center space-x-2">
           <button
             onClick={handleSave}
             className="px-4 py-2 bg-blue-500 text-white rounded-md"
           >
             Save Changes
           </button>
+          <label className="flex items-center space-x-1">
+            <input
+              type="checkbox"
+              checked={directPush}
+              onChange={(e) => setDirectPush(e.target.checked)}
+              className="form-checkbox"
+            />
+            <span>Direct Push</span>
+          </label>
           <button
             onClick={() => handleLLMInteraction("continue")}
             className="px-4 py-2 bg-purple-500 text-white rounded-md"
@@ -177,4 +186,5 @@ export default function Project() {
     </div>
   )
 }
+
 
