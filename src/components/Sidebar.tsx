@@ -398,6 +398,16 @@ export default function Sidebar() {
             </ul>
           </nav>
 
+          {/* Current Project Display */}
+          <div className="mt-4 p-2 bg-gray-700 rounded">
+            <h3 className="text-md font-semibold mb-1">Current Project:</h3>
+            {currentOwner && currentRepo ? (
+              <p className="text-sm text-blue-300">{currentOwner}/{currentRepo}</p>
+            ) : (
+              <p className="text-sm text-gray-400">No project selected</p>
+            )}
+          </div>
+
           
 
           {/* Projects Section */}
@@ -418,7 +428,6 @@ export default function Sidebar() {
                           onClick={() => handleProjectSelect(project.owner, project.name)}
                           className="block w-full text-left hover:bg-gray-600 p-1 rounded"
                         >
-                          {project.name.replace("escriba-", "")}
                         </button>
                       </li>
                     ))}
