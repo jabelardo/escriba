@@ -6,8 +6,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useMarkdown } from "@/context/MarkdownContext";
 import { useProject } from "@/context/ProjectContext";
 
-
-
 interface FileContent {
   name: string;
   path: string;
@@ -30,7 +28,10 @@ export default function Sidebar() {
   const [userProjects, setUserProjects] = useState<any[]>([]);
   const [isProjectsOpen, setIsProjectsOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState<string>('');
-  
+  const [isBooksOpen, setIsBooksOpen] = useState(false);
+  const [isReferencesOpen, setIsReferencesOpen] = useState(false);
+  const [showCreateFileDialog, setShowCreateFileDialog] = useState(false);
+  const [newFileParentFolder, setNewFileParentFolder] = useState<"books" | "references">("books");
 
   const fetchUserProjects = useCallback(async () => {
     if (!session?.accessToken) return;
@@ -175,8 +176,10 @@ export default function Sidebar() {
       return;
     }
 
+    const fullPath = `${newFileParentFolder}/${newFilePath}`;
+
     try {
-      const response = await fetch(`/api/repos/${currentOwner}/${currentRepo}/${newFilePath}`,
+      const response = await fetch(`/api/repos/${currentOwner}/${currentRepo}/${fullPath}`,
         {
           method: "PUT",
           headers: {
@@ -184,7 +187,7 @@ export default function Sidebar() {
           },
           body: JSON.stringify({
             content: markdownContent,
-            message: `Create ${newFilePath}`,
+            message: `Create ${fullPath}`,
             directPush: directPush,
             branch: currentBranch, // Use selected branch for new file creation
           }),
@@ -192,8 +195,9 @@ export default function Sidebar() {
       );
 
       if (response.ok) {
-        alert(`File ${newFilePath} created and ${directPush ? 'pushed directly' : 'pull request created'}!`);
+        alert(`File ${fullPath} created and ${directPush ? 'pushed directly' : 'pull request created'}!`);
         setNewFilePath(''); // Clear the input
+        setShowCreateFileDialog(false); // Close the dialog
         // Refresh the repo contents to show the new file
         const data = await fetchRepoContents();
         setRepoContents(data);
@@ -236,7 +240,7 @@ export default function Sidebar() {
     }
   };
 
-  const renderContents = (contents: FileContent[]) => {
+  const renderFileTree = (contents: FileContent[]) => {
     return (
       <ul className="ml-4">
         {contents.map((item) => (
@@ -252,7 +256,7 @@ export default function Sidebar() {
                 {openFolders.has(item.path) && (
                   <div className="ml-4">
                     {folderContents.has(item.path) ? (
-                      renderContents(folderContents.get(item.path) || [])
+                      renderFileTree(folderContents.get(item.path) || [])
                     ) : (
                       <p className="text-sm text-gray-400">Loading...</p>
                     )}
@@ -385,47 +389,64 @@ export default function Sidebar() {
           {/* Project Specific Content */}
           {currentOwner && currentRepo && (
             <>
+              {/* Books Section */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Current Project: {currentRepo.replace("escriba-", "")}</h3>
-                {loading ? (
-                  <p>Loading repository contents...</p>
-                ) : (
-                  <div>
-                    {repoContents.length > 0 ? (
-                      renderContents(repoContents)
+                <div className="flex justify-between items-center">
+                  <button
+                    onClick={() => setIsBooksOpen(!isBooksOpen)}
+                    className="flex items-center w-full text-left hover:bg-gray-700 p-2 rounded"
+                  >
+                    {isBooksOpen ? "▼" : "►"} Books
+                  </button>
+                  <button
+                    onClick={() => {
+                      setNewFileParentFolder("books");
+                      setShowCreateFileDialog(true);
+                    }}
+                    className="bg-blue-500 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
+                  >
+                    + MD
+                  </button>
+                </div>
+                {isBooksOpen && (
+                  <div className="ml-4 mt-2">
+                    {loading ? (
+                      <p>Loading books...</p>
                     ) : (
-                      <p>No contents found or repository is empty.</p>
+                      renderFileTree(repoContents.filter(item => item.path.startsWith("books/")))
                     )}
                   </div>
                 )}
               </div>
 
-              <hr className="border-gray-700" />
-
-              {/* Create New Markdown File */}
+              {/* References Section */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Create New MD</h3>
-                <input
-                  type="text"
-                  placeholder="New file path (e.g., docs/new-doc.md)"
-                  className="w-full p-2 rounded bg-gray-700 text-white text-sm mb-2"
-                  value={newFilePath}
-                  onChange={(e) => setNewFilePath(e.target.value)}
-                />
-                <div className="flex space-x-2">
+                <div className="flex justify-between items-center">
                   <button
-                    onClick={() => handleCreateNewMd(false)}
-                    className="flex-1 bg-blue-500 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
+                    onClick={() => setIsReferencesOpen(!isReferencesOpen)}
+                    className="flex items-center w-full text-left hover:bg-gray-700 p-2 rounded"
                   >
-                    Create & PR
+                    {isReferencesOpen ? "▼" : "►"} References
                   </button>
                   <button
-                    onClick={() => handleCreateNewMd(true)}
-                    className="flex-1 bg-green-500 hover:bg-green-700 text-white px-2 py-1 rounded text-sm"
+                    onClick={() => {
+                      setNewFileParentFolder("references");
+                      setShowCreateFileDialog(true);
+                    }}
+                    className="bg-blue-500 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
                   >
-                    Create & Push
+                    + MD
                   </button>
                 </div>
+                {isReferencesOpen && (
+                  <div className="ml-4 mt-2">
+                    {loading ? (
+                      <p>Loading references...</p>
+                    ) : (
+                      renderFileTree(repoContents.filter(item => item.path.startsWith("references/")))
+                    )}
+                  </div>
+                )}
               </div>
 
               <hr className="border-gray-700" />
@@ -467,6 +488,69 @@ export default function Sidebar() {
                 </div>
               </div>
             </>
+          )}
+
+          {/* Create New File Dialog */}
+          {showCreateFileDialog && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-96">
+                <h3 className="text-lg font-semibold mb-4">Create New Markdown File</h3>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Parent Folder:</label>
+                  <div className="flex space-x-4">
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        className="form-radio"
+                        name="parentFolder"
+                        value="books"
+                        checked={newFileParentFolder === "books"}
+                        onChange={() => setNewFileParentFolder("books")}
+                      />
+                      <span className="ml-2">Books</span>
+                    </label>
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        className="form-radio"
+                        name="parentFolder"
+                        value="references"
+                        checked={newFileParentFolder === "references"}
+                        onChange={() => setNewFileParentFolder("references")}
+                      />
+                      <span className="ml-2">References</span>
+                    </label>
+                  </div>
+                </div>
+                <input
+                  type="text"
+                  placeholder={`New file path (e.g., my-new-doc.md) in ${newFileParentFolder}/`}
+                  className="w-full p-2 rounded bg-gray-700 text-white text-sm mb-4"
+                  value={newFilePath}
+                  onChange={(e) => setNewFilePath(e.target.value)}
+                />
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleCreateNewMd(false)}
+                    className="flex-1 bg-blue-500 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
+                  >
+                    Create & PR
+                  </button>
+                  <button
+                    onClick={() => handleCreateNewMd(true)}
+                    className="flex-1 bg-green-500 hover:bg-green-700 text-white px-2 py-1 rounded text-sm"
+                  >
+                    Create & Push
+                  </button>
+                  <button
+                    onClick={() => setShowCreateFileDialog(false)}
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </>
       )}
