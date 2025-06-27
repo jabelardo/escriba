@@ -240,11 +240,17 @@ export default function Sidebar() {
     }
   };
 
-  const handleToggleSection = (section: "books" | "references") => {
+  const handleToggleSection = async (section: "books" | "references") => {
     if (section === "books") {
       setIsBooksOpen((prev) => !prev);
+      if (!isBooksOpen) { // If it's about to open, fetch contents
+        await toggleFolder("books");
+      }
     } else if (section === "references") {
       setIsReferencesOpen((prev) => !prev);
+      if (!isReferencesOpen) { // If it's about to open, fetch contents
+        await toggleFolder("references");
+      }
     }
   };
 

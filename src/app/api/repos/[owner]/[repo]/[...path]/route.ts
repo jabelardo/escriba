@@ -28,11 +28,15 @@ export async function GET(
       path: filePath,
     });
 
-    if ("content" in data && data.content) {
+    if (Array.isArray(data)) {
+      // If data is an array, it means it's a directory listing
+      return NextResponse.json(data);
+    } else if ("content" in data && data.content) {
+      // If data is an object with content, it's a file
       const content = Buffer.from(data.content, "base64").toString("utf8");
       return NextResponse.json({ content, sha: data.sha });
     } else {
-      return new Response("File content not found", { status: 404 });
+      return new Response("Content not found or unsupported type", { status: 404 });
     }
   } catch (error) {
     console.error(error);
