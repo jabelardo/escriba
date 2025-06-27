@@ -240,6 +240,14 @@ export default function Sidebar() {
     }
   };
 
+  const handleToggleSection = (section: "books" | "references") => {
+    if (section === "books") {
+      setIsBooksOpen((prev) => !prev);
+    } else if (section === "references") {
+      setIsReferencesOpen((prev) => !prev);
+    }
+  };
+
   const renderFileTree = (contents: FileContent[]) => {
     return (
       <ul className="ml-4">
@@ -393,7 +401,7 @@ export default function Sidebar() {
               <div>
                 <div className="flex justify-between items-center">
                   <button
-                    onClick={() => setIsBooksOpen(!isBooksOpen)}
+                    onClick={() => handleToggleSection("books")}
                     className="flex items-center w-full text-left hover:bg-gray-700 p-2 rounded"
                   >
                     {isBooksOpen ? "▼" : "►"} Books
@@ -410,10 +418,10 @@ export default function Sidebar() {
                 </div>
                 {isBooksOpen && (
                   <div className="ml-4 mt-2">
-                    {loading ? (
-                      <p>Loading books...</p>
+                    {folderContents.has("books") ? (
+                      renderFileTree(folderContents.get("books") || [])
                     ) : (
-                      renderFileTree(repoContents.filter(item => item.path.startsWith("books/")))
+                      <p className="text-sm text-gray-400">Loading...</p>
                     )}
                   </div>
                 )}
@@ -423,7 +431,7 @@ export default function Sidebar() {
               <div>
                 <div className="flex justify-between items-center">
                   <button
-                    onClick={() => setIsReferencesOpen(!isReferencesOpen)}
+                    onClick={() => handleToggleSection("references")}
                     className="flex items-center w-full text-left hover:bg-gray-700 p-2 rounded"
                   >
                     {isReferencesOpen ? "▼" : "►"} References
@@ -440,10 +448,10 @@ export default function Sidebar() {
                 </div>
                 {isReferencesOpen && (
                   <div className="ml-4 mt-2">
-                    {loading ? (
-                      <p>Loading references...</p>
+                    {folderContents.has("references") ? (
+                      renderFileTree(folderContents.get("references") || [])
                     ) : (
-                      renderFileTree(repoContents.filter(item => item.path.startsWith("references/")))
+                      <p className="text-sm text-gray-400">Loading...</p>
                     )}
                   </div>
                 )}
