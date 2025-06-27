@@ -251,12 +251,6 @@ export default function Sidebar() {
         // Refresh the repo contents to show the new file
         const data = await fetchRepoContents();
         setRepoContents(data);
-
-        // If the parent folder is currently open, re-fetch its contents to show the new file
-        if (openFolders.has(newFileParentFolder)) {
-          const updatedFolderContents = await fetchRepoContents(newFileParentFolder);
-          setFolderContents((prev) => new Map(prev).set(newFileParentFolder, updatedFolderContents));
-        }
       } else {
         alert("Error creating file.");
       }
