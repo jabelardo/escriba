@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     console.log("Session user username:", session.user?.username);
     
     const repo = await octokit.repos.createForAuthenticatedUser({
-      name: `escriba-${projectName}`,
+      name: `${projectName}`,
       private: true,
     });
 

@@ -20,11 +20,7 @@ export async function GET(req: Request) {
       type: "owner",
     });
 
-    const escribaRepos = repos.filter((repo) =>
-      repo.name.startsWith("escriba-")
-    );
-
-    return NextResponse.json(escribaRepos);
+    return NextResponse.json(repos);
   } catch (error) {
     console.error(error);
     return new Response("Error fetching repositories", { status: 500 });
