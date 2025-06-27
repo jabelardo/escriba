@@ -13,16 +13,24 @@ interface MarkdownContextType {
   setCurrentBranch: (branch: string | null) => void;
   selectedContextFiles: string[];
   toggleContextFile: (filePath: string) => void;
+  isDirty: boolean;
+  setIsDirty: (dirty: boolean) => void;
 }
 
 const MarkdownContext = createContext<MarkdownContextType | undefined>(undefined);
 
 export const MarkdownProvider = ({ children }: { children: ReactNode }) => {
-  const [markdownContent, setMarkdownContent] = useState<string>('');
+  const [markdownContent, setMarkdownContentState] = useState<string>('');
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
   const [currentFileSha, setCurrentFileSha] = useState<string | null>(null);
   const [currentBranch, setCurrentBranch] = useState<string | null>(null);
   const [selectedContextFiles, setSelectedContextFiles] = useState<string[]>([]);
+  const [isDirty, setIsDirty] = useState<boolean>(false);
+
+  const setMarkdownContent = (content: string) => {
+    setMarkdownContentState(content);
+    setIsDirty(true);
+  };
 
   const toggleContextFile = (filePath: string) => {
     setSelectedContextFiles((prevSelected) =>
@@ -44,6 +52,8 @@ export const MarkdownProvider = ({ children }: { children: ReactNode }) => {
       setCurrentBranch,
       selectedContextFiles,
       toggleContextFile,
+      isDirty,
+      setIsDirty,
     }}>
       {children}
     </MarkdownContext.Provider>
