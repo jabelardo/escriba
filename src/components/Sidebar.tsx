@@ -229,28 +229,27 @@ export default function Sidebar() {
     const fullPath = `${newFileParentFolder}/${newFilePath}`;
 
     try {
-      const response = await fetch(`/api/repos/${currentOwner}/${currentRepo}/${fullPath}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            content: markdownContent,
-            message: `Create ${fullPath}`,
-            directPush: directPush,
-            branch: currentBranch, // Use selected branch for new file creation
-          }),
-        }
-      );
+      const response = await fetch(`/api/repos/${currentOwner}/${currentRepo}/${fullPath}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: markdownContent,
+          message: `Create ${fullPath}`,
+          directPush: directPush,
+          branch: currentBranch, // Use selected branch for new file creation
+        }),
+      });
 
       if (response.ok) {
         alert(`File ${fullPath} created and ${directPush ? 'pushed directly' : 'pull request created'}!`);
         setNewFilePath(''); // Clear the input
         setShowCreateFileDialog(false); // Close the dialog
-        // Refresh the repo contents to show the new file
-        const data = await fetchRepoContents();
-        setRepoContents(data);
+
+        // Refresh the folder contents for the parent folder
+        const updatedContents = await fetchRepoContents(newFileParentFolder);
+        setFolderContents((prev) => new Map(prev).set(newFileParentFolder, updatedContents));
       } else {
         alert("Error creating file.");
       }
