@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 
 interface UserProject {
   id: string;
@@ -27,16 +27,16 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
 
   const LOCAL_STORAGE_KEY = "escriba_user_projects";
 
-  const loadUserProjects = () => {
+  const loadUserProjects = useCallback(() => {
     if (typeof window !== "undefined") {
       const storedProjects = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (storedProjects) {
         setUserProjects(JSON.parse(storedProjects));
       }
     }
-  };
+  }, [setUserProjects, LOCAL_STORAGE_KEY]);
 
-  const addUserProject = (owner: string, repo: string) => {
+  const addUserProject = useCallback((owner: string, repo: string) => {
     const newProject: UserProject = {
       id: `${owner}/${repo}`,
       owner: owner,
@@ -49,11 +49,11 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       }
       return updatedProjects;
     });
-  };
+  }, [setUserProjects, LOCAL_STORAGE_KEY]);
 
   useEffect(() => {
     loadUserProjects();
-  }, []);
+  }, [loadUserProjects]);
 
   return (
     <ProjectContext.Provider value={{

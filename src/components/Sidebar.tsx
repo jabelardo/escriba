@@ -95,7 +95,6 @@ export default function Sidebar() {
     // Add project to local storage via context
     addUserProject(owner, repo);
     setNewProjectName('');
-    loadUserProjects(); // Refresh the list of projects from local storage
 
     try {
       // After adding, check for 'books' and 'references' folders
