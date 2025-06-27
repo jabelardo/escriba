@@ -28,7 +28,7 @@ export default function NewProject() {
 
     if (res.ok) {
       const repo = await res.json()
-      router.push(`/dashboard/project/${repo.name}`)
+      router.push(`/projects/${repo.name}`)
     } else {
       // Handle error
       console.error("Error creating project")

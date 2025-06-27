@@ -312,12 +312,7 @@ export default function Sidebar() {
           <nav>
             <ul className="space-y-2">
               <li>
-                <Link href="/dashboard" className="block hover:bg-gray-700 p-2 rounded">
-                  Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard/new-project" className="block hover:bg-gray-700 p-2 rounded">
+                <Link href="/projects/new-project" className="block hover:bg-gray-700 p-2 rounded">
                   New Project
                 </Link>
               </li>

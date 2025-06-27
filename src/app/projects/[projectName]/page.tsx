@@ -14,6 +14,7 @@ interface RepoFile {
   name: string
   path: string
   type: string
+  sha?: string | null
 }
 
 import { useParams } from "next/navigation"
@@ -95,7 +96,7 @@ export default function Project() {
     for (const filePath of selectedContextFiles) {
       try {
         const res = await fetch(
-          `/api/repos/${session.user?.username}/${params.projectName}/${filePath}?ref=${currentBranch}`
+          `/api/repos/${session?.user?.username}/${params.projectName}/${filePath}?ref=${currentBranch}`
         );
         if (res.ok) {
           const data = await res.json();
