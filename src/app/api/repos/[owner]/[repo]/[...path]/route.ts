@@ -37,8 +37,8 @@ export async function GET(
     if (Array.isArray(data)) {
       // If data is an array, it means it's a directory listing
       return NextResponse.json(data);
-    } else if ("content" in data && data.content) {
-      // If data is an object with content, it's a file
+    } else if ("content" in data && data.content !== undefined) {
+      // If data is an object with content, it's a file (even if content is empty string)
       const content = Buffer.from(data.content, "base64").toString("utf8");
       return NextResponse.json({ content, sha: data.sha });
     } else {
