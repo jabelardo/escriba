@@ -495,33 +495,6 @@ export default function Sidebar() {
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-96">
                 <h3 className="text-lg font-semibold mb-4">Create New Markdown File</h3>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Parent Folder:</label>
-                  <div className="flex space-x-4">
-                    <label className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        className="form-radio"
-                        name="parentFolder"
-                        value="books"
-                        checked={newFileParentFolder === "books"}
-                        onChange={() => setNewFileParentFolder("books")}
-                      />
-                      <span className="ml-2">Books</span>
-                    </label>
-                    <label className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        className="form-radio"
-                        name="parentFolder"
-                        value="references"
-                        checked={newFileParentFolder === "references"}
-                        onChange={() => setNewFileParentFolder("references")}
-                      />
-                      <span className="ml-2">References</span>
-                    </label>
-                  </div>
-                </div>
                 <input
                   type="text"
                   placeholder={`New file path (e.g., my-new-doc.md) in ${newFileParentFolder}/`}
