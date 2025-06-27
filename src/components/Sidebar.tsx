@@ -16,7 +16,7 @@ interface FileContent {
 export default function Sidebar() {
   const { data: session } = useSession();
   const { setMarkdownContent, setCurrentFilePath, setCurrentFileSha, markdownContent, currentBranch, setCurrentBranch, selectedContextFiles, toggleContextFile } = useMarkdown();
-  const { currentOwner, currentRepo, setCurrentOwner, setCurrentRepo } = useProject();
+  const { currentOwner, currentRepo, setCurrentOwner, setCurrentRepo, userProjects, addUserProject, loadUserProjects } = useProject();
   const [repoContents, setRepoContents] = useState<FileContent[]>([]);
   const [folderContents, setFolderContents] = useState<Map<string, FileContent[]>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -25,7 +25,6 @@ export default function Sidebar() {
   const [branches, setBranches] = useState<any[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [newBranchName, setNewBranchName] = useState<string>('');
-  const [userProjects, setUserProjects] = useState<any[]>([]);
   const [isProjectsOpen, setIsProjectsOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState<string>('');
   const [isBooksOpen, setIsBooksOpen] = useState(false);
@@ -33,63 +32,25 @@ export default function Sidebar() {
   const [showCreateFileDialog, setShowCreateFileDialog] = useState(false);
   const [newFileParentFolder, setNewFileParentFolder] = useState<"books" | "references">("books");
 
-  const fetchUserProjects = useCallback(async () => {
-    if (!session?.accessToken) return;
+  useEffect(() => {
+    loadUserProjects();
+  }, [loadUserProjects]);
+
+  const fetchRepoContents = useCallback(async (path = "", owner = currentOwner, repo = currentRepo) => {
+    if (!session?.accessToken || !owner || !repo) return [];
+
     try {
-      const response = await fetch("/api/user/repos");
+      const response = await fetch(`/api/repos/${owner}/${repo}/${path}?ref=${currentBranch}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json();
-      setUserProjects(data);
+      const data: FileContent[] = await response.json();
+      return data;
     } catch (error) {
-      console.error("Error fetching user projects:", error);
+      console.error(`Error fetching repo contents for ${path}:`, error);
+      return [];
     }
-  }, [session]);
-
-  const handleAddProject = async () => {
-    if (!session?.accessToken || !newProjectName) {
-      alert("Please enter a project name (owner/repo-name).");
-      return;
-    }
-    const [owner, repo] = newProjectName.split('/');
-    if (!owner || !repo) {
-      alert("Invalid project name format. Please use owner/repo-name.");
-      return;
-    }
-
-    try {
-      // Simulate adding project (replace with actual backend call if needed)
-      alert(`Project ${newProjectName} added (simulated).`);
-      setNewProjectName('');
-      fetchUserProjects(); // Refresh the list of projects
-
-      // After adding, check for 'books' and 'references' folders
-      const repoRootContents = await fetchRepoContents('', owner, repo); // Fetch root contents of the new repo
-      const hasBooks = repoRootContents.some(item => item.name === "books" && item.type === "dir");
-      const hasReferences = repoRootContents.some(item => item.name === "references" && item.type === "dir");
-
-      if (!hasBooks) {
-        const confirmCreate = confirm("'books' folder not found. Do you want to create it?");
-        if (confirmCreate) {
-          await createFolderInRepo(owner, repo, "books");
-        }
-      }
-      if (!hasReferences) {
-        const confirmCreate = confirm("'references' folder not found. Do you want to create it?");
-        if (confirmCreate) {
-          await createFolderInRepo(owner, repo, "references");
-        }
-      }
-      // Refresh repo contents after potential folder creation
-      const updatedContents = await fetchRepoContents();
-      setRepoContents(updatedContents);
-
-    } catch (error) {
-      console.error("Error adding project:", error);
-      alert("Error adding project.");
-    }
-  };
+  }, [session, currentOwner, currentRepo, currentBranch]);
 
   const createFolderInRepo = async (owner: string, repo: string, folderName: string) => {
     if (!session?.accessToken) return;
@@ -120,26 +81,54 @@ export default function Sidebar() {
     }
   };
 
+  const handleAddProject = async () => {
+    if (!session?.accessToken || !newProjectName) {
+      alert("Please enter a project name (owner/repo-name).");
+      return;
+    }
+    const [owner, repo] = newProjectName.split('/');
+    if (!owner || !repo) {
+      alert("Invalid project name format. Please use owner/repo-name.");
+      return;
+    }
+
+    // Add project to local storage via context
+    addUserProject(owner, repo);
+    setNewProjectName('');
+    loadUserProjects(); // Refresh the list of projects from local storage
+
+    try {
+      // After adding, check for 'books' and 'references' folders
+      const repoRootContents = await fetchRepoContents('', owner, repo); // Fetch root contents of the new repo
+      const hasBooks = repoRootContents.some(item => item.name === "books" && item.type === "dir");
+      const hasReferences = repoRootContents.some(item => item.name === "references" && item.type === "dir");
+
+      if (!hasBooks) {
+        const confirmCreate = confirm("'books' folder not found. Do you want to create it?");
+        if (confirmCreate) {
+          await createFolderInRepo(owner, repo, "books");
+        }
+      }
+      if (!hasReferences) {
+        const confirmCreate = confirm("'references' folder not found. Do you want to create it?");
+        if (confirmCreate) {
+          await createFolderInRepo(owner, repo, "references");
+        }
+      }
+      // Refresh repo contents after potential folder creation
+      const updatedContents = await fetchRepoContents();
+      setRepoContents(updatedContents);
+
+    } catch (error) {
+      console.error("Error adding project:", error);
+      alert("Error adding project.");
+    }
+  };
+
   const handleProjectSelect = (owner: string, repo: string) => {
     setCurrentOwner(owner);
     setCurrentRepo(repo);
   };
-
-  const fetchRepoContents = useCallback(async (path = "", owner = currentOwner, repo = currentRepo) => {
-    if (!session?.accessToken || !owner || !repo) return [];
-
-    try {
-      const response = await fetch(`/api/repos/${owner}/${repo}/${path}?ref=${currentBranch}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: FileContent[] = await response.json();
-      return data;
-    } catch (error) {
-      console.error(`Error fetching repo contents for ${path}:`, error);
-      return [];
-    }
-  }, [session, currentOwner, currentRepo, currentBranch]);
 
   const fetchBranches = useCallback(async () => {
     if (!session?.accessToken || !currentOwner || !currentRepo) return;
@@ -158,31 +147,9 @@ export default function Sidebar() {
     }
   }, [session, currentOwner, currentRepo, setCurrentBranch]);
 
-  
-
   useEffect(() => {
-    const loadInitialData = async () => {
-      if (session?.accessToken) {
-        await fetchUserProjects();
-      }
-
-      if (currentOwner && currentRepo) {
-        setLoading(true);
-        const contents = await fetchRepoContents();
-        setRepoContents(contents);
-        await fetchBranches();
-        setLoading(false);
-      } else {
-        setRepoContents([]);
-        setBranches([]);
-        setLoading(false);
-      }
-    };
-
-    loadInitialData();
-  }, [fetchRepoContents, fetchBranches, fetchUserProjects, currentOwner, currentRepo, session?.accessToken]);
-
-  
+    loadUserProjects();
+  }, [loadUserProjects]);
 
   const toggleFolder = async (path: string) => {
     setOpenFolders((prev) => {
@@ -413,7 +380,7 @@ export default function Sidebar() {
                     {userProjects.map((project) => (
                       <li key={project.id}>
                         <button
-                          onClick={() => handleProjectSelect(project.owner.login, project.name)}
+                          onClick={() => handleProjectSelect(project.owner, project.name)}
                           className="block w-full text-left hover:bg-gray-600 p-1 rounded"
                         >
                           {project.name.replace("escriba-", "")}
