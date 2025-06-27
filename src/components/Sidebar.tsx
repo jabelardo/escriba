@@ -13,16 +13,25 @@ interface FileContent {
   sha?: string;
 }
 
+interface Branch {
+  name: string;
+  commit: {
+    sha: string;
+    url: string;
+  }
+  protected: boolean;
+}
+
 export default function Sidebar() {
   const { data: session } = useSession();
   const { setMarkdownContent, setCurrentFilePath, setCurrentFileSha, markdownContent, currentBranch, setCurrentBranch, selectedContextFiles, toggleContextFile } = useMarkdown();
   const { currentOwner, currentRepo, setCurrentOwner, setCurrentRepo, userProjects, addUserProject, loadUserProjects } = useProject();
-  const [repoContents, setRepoContents] = useState<FileContent[]>([]);
+  const [, setRepoContents] = useState<FileContent[]>([]);
   const [folderContents, setFolderContents] = useState<Map<string, FileContent[]>>(new Map());
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
   const [newFilePath, setNewFilePath] = useState<string>('');
-  const [branches, setBranches] = useState<any[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [newBranchName, setNewBranchName] = useState<string>('');
   const [isProjectsOpen, setIsProjectsOpen] = useState(false);
@@ -84,10 +93,10 @@ export default function Sidebar() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json();
+      const data: Branch[] = await response.json();
       setBranches(data);
       if (data.length > 0) {
-        const defaultBranch = data.find((branch: any) => branch.name === 'main') || data[0];
+        const defaultBranch = data.find((branch: Branch) => branch.name === 'main') || data[0];
         setCurrentBranch(defaultBranch.name); // Select 'main' or the first branch by default
         setSelectedBranch(defaultBranch.name); // Also update the selectedBranch state for the dropdown
       } else {
