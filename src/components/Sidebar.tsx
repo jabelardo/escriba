@@ -32,10 +32,6 @@ export default function Sidebar() {
   const [showCreateFileDialog, setShowCreateFileDialog] = useState(false);
   const [newFileParentFolder, setNewFileParentFolder] = useState<"books" | "references">("books");
 
-  useEffect(() => {
-    loadUserProjects();
-  }, [loadUserProjects]);
-
   const fetchRepoContents = useCallback(async (path = "", owner = currentOwner, repo = currentRepo) => {
     if (!session?.accessToken || !owner || !repo) return [];
 
@@ -81,6 +77,60 @@ export default function Sidebar() {
     }
   };
 
+  const fetchBranches = useCallback(async () => {
+    if (!session?.accessToken || !currentOwner || !currentRepo) return;
+    try {
+      const response = await fetch(`/api/repos/${currentOwner}/${currentRepo}/branches`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setBranches(data);
+      if (data.length > 0) {
+        const defaultBranch = data.find((branch: any) => branch.name === 'main') || data[0];
+        setCurrentBranch(defaultBranch.name); // Select 'main' or the first branch by default
+        setSelectedBranch(defaultBranch.name); // Also update the selectedBranch state for the dropdown
+      } else {
+        setCurrentBranch(''); // Set to empty string if no branches
+        setSelectedBranch(''); // Set to empty string if no branches
+      }
+    } catch (error) {
+      console.error("Error fetching branches:", error);
+      setCurrentBranch(''); // Set to empty string on error
+      setSelectedBranch(''); // Set to empty string on error
+    }
+  }, [session, currentOwner, currentRepo, setCurrentBranch]);
+
+  useEffect(() => {
+    loadUserProjects();
+  }, [loadUserProjects]);
+
+  useEffect(() => {
+    const loadProjectData = async () => {
+      if (currentOwner && currentRepo) {
+        setLoading(true);
+        const contents = await fetchRepoContents();
+        setRepoContents(contents);
+        await fetchBranches();
+        setLoading(false);
+      } else {
+        setRepoContents([]);
+        setBranches([]);
+        setLoading(false);
+      }
+    };
+
+    loadProjectData();
+  }, [fetchRepoContents, fetchBranches, currentOwner, currentRepo]);
+
+  useEffect(() => {
+    if (userProjects.length > 0 && !currentOwner && !currentRepo) {
+      // Automatically select the first project if none is selected
+      setCurrentOwner(userProjects[0].owner);
+      setCurrentRepo(userProjects[0].name);
+    }
+  }, [userProjects, currentOwner, currentRepo, setCurrentOwner, setCurrentRepo]);
+
   const handleAddProject = async () => {
     if (!session?.accessToken || !newProjectName) {
       alert("Please enter a project name (owner/repo-name).");
@@ -124,31 +174,17 @@ export default function Sidebar() {
     }
   };
 
-  const handleProjectSelect = (owner: string, repo: string) => {
+  const handleProjectSelect = useCallback(async (owner: string, repo: string) => {
     setCurrentOwner(owner);
     setCurrentRepo(repo);
-  };
+    // Clear existing content and reset loading state for the new project
+    setRepoContents([]);
+    setFolderContents(new Map());
+    setOpenFolders(new Set());
+    setLoading(true);
+    // These will be triggered by the useEffect that watches currentOwner/currentRepo
+  }, [setCurrentOwner, setCurrentRepo]);
 
-  const fetchBranches = useCallback(async () => {
-    if (!session?.accessToken || !currentOwner || !currentRepo) return;
-    try {
-      const response = await fetch(`/api/repos/${currentOwner}/${currentRepo}/branches`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setBranches(data);
-      if (data.length > 0) {
-        setCurrentBranch(data[0].name); // Select the first branch by default
-      }
-    } catch (error) {
-      console.error("Error fetching branches:", error);
-    }
-  }, [session, currentOwner, currentRepo, setCurrentBranch]);
-
-  useEffect(() => {
-    loadUserProjects();
-  }, [loadUserProjects]);
 
   const toggleFolder = async (path: string) => {
     setOpenFolders((prev) => {
