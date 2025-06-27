@@ -59,16 +59,64 @@ export default function Sidebar() {
     }
 
     try {
-      // This assumes you have an API endpoint to register/add a project
-      // For now, we'll just simulate adding it to the list and clear the input
-      // In a real application, you'd make a POST request to your backend
-      // to associate this repo with the user.
+      // Simulate adding project (replace with actual backend call if needed)
       alert(`Project ${newProjectName} added (simulated).`);
       setNewProjectName('');
       fetchUserProjects(); // Refresh the list of projects
+
+      // After adding, check for 'books' and 'references' folders
+      const repoRootContents = await fetchRepoContents('', owner, repo); // Fetch root contents of the new repo
+      const hasBooks = repoRootContents.some(item => item.name === "books" && item.type === "dir");
+      const hasReferences = repoRootContents.some(item => item.name === "references" && item.type === "dir");
+
+      if (!hasBooks) {
+        const confirmCreate = confirm("'books' folder not found. Do you want to create it?");
+        if (confirmCreate) {
+          await createFolderInRepo(owner, repo, "books");
+        }
+      }
+      if (!hasReferences) {
+        const confirmCreate = confirm("'references' folder not found. Do you want to create it?");
+        if (confirmCreate) {
+          await createFolderInRepo(owner, repo, "references");
+        }
+      }
+      // Refresh repo contents after potential folder creation
+      const updatedContents = await fetchRepoContents();
+      setRepoContents(updatedContents);
+
     } catch (error) {
       console.error("Error adding project:", error);
       alert("Error adding project.");
+    }
+  };
+
+  const createFolderInRepo = async (owner: string, repo: string, folderName: string) => {
+    if (!session?.accessToken) return;
+    const filePath = `${folderName}/.gitkeep`; // Create a .gitkeep file to represent the folder
+    try {
+      const response = await fetch(`/api/repos/${owner}/${repo}/${filePath}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: "", // Empty content for .gitkeep
+          message: `Create ${folderName} folder`,
+          directPush: true, // Direct push for folder creation
+          branch: currentBranch, // Use current branch
+        }),
+      });
+
+      if (response.ok) {
+        alert(`Folder '${folderName}' created successfully!`);
+      } else {
+        const errorData = await response.json();
+        alert(`Error creating folder '${folderName}': ${errorData.message || response.statusText}`);
+      }
+    } catch (error) {
+      console.error(`Error creating folder '${folderName}':`, error);
+      alert(`Error creating folder '${folderName}'.`);
     }
   };
 
@@ -339,7 +387,7 @@ export default function Sidebar() {
               </li>
               <li>
                 <button
-                  onClick={() => signOut()}
+                  onClick={() => signOut({ callbackUrl: '/' })}
                   className="w-full text-left hover:bg-gray-700 p-2 rounded"
                 >
                   Logout
