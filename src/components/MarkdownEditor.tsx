@@ -1,4 +1,3 @@
-
 'use client'
 
 import React from 'react'
@@ -16,8 +15,12 @@ const converter = new Showdown.Converter({
   tasklists: true,
 })
 
-export default function MarkdownEditor() {
-  const { markdownContent, setMarkdownContent } = useMarkdown();
+interface MarkdownEditorProps {
+  markdownContent: string;
+  setMarkdownContent: (content: string) => void;
+}
+
+export default function MarkdownEditor({ markdownContent, setMarkdownContent }: MarkdownEditorProps) {
   const [selectedTab, setSelectedTab] = React.useState<"write" | "preview">(
     "write"
   )
