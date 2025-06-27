@@ -22,10 +22,16 @@ export async function GET(
 
   try {
     const filePath = path.join("/");
+    const url = new URL(req.url);
+    const ref = url.searchParams.get("ref") || undefined;
+
+    console.log(`Fetching content for: owner=${owner}, repo=${repo}, path=${filePath}, ref=${ref}`);
+
     const { data } = await octokit.repos.getContent({
       owner: owner,
       repo: repo,
       path: filePath,
+      ref: ref,
     });
 
     if (Array.isArray(data)) {

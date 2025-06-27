@@ -257,7 +257,7 @@ export default function Sidebar() {
   const renderFileTree = (contents: FileContent[]) => {
     return (
       <ul className="ml-4">
-        {contents.map((item) => (
+        {contents.filter(item => item.type === "dir" || item.name.endsWith(".md")).map((item) => (
           <li key={item.path}>
             {item.type === "dir" ? (
               <div>
@@ -280,22 +280,20 @@ export default function Sidebar() {
             ) : (
               <div className="flex justify-between items-center hover:bg-gray-700 p-1 rounded">
                 <span>{item.name}</span>
-                {item.name.endsWith(".md") && (
-                  <div className="text-xs space-x-1">
-                    <button
-                      onClick={() => toggleContextFile(item.path)}
-                      className={`px-2 py-1 rounded ${selectedContextFiles.includes(item.path) ? 'bg-blue-700' : 'bg-blue-500 hover:bg-blue-700'} text-white`}
-                    >
-                      LLM
-                    </button>
-                    <button
-                      onClick={() => handleLoadMd(item.path, item.sha)}
-                      className="bg-green-500 hover:bg-green-700 text-white px-2 py-1 rounded"
-                    >
-                      Load
-                    </button>
-                  </div>
-                )}
+                <div className="text-xs space-x-1">
+                  <button
+                    onClick={() => toggleContextFile(item.path)}
+                    className={`px-2 py-1 rounded ${selectedContextFiles.includes(item.path) ? 'bg-blue-700' : 'bg-blue-500 hover:bg-blue-700'} text-white`}
+                  >
+                    LLM
+                  </button>
+                  <button
+                    onClick={() => handleLoadMd(item.path, item.sha)}
+                    className="bg-green-500 hover:bg-green-700 text-white px-2 py-1 rounded"
+                  >
+                    Load
+                  </button>
+                </div>
               </div>
             )}
           </li>
