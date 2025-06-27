@@ -5,6 +5,7 @@ import React, { createContext, useState, useContext, ReactNode } from 'react';
 interface MarkdownContextType {
   markdownContent: string;
   setMarkdownContent: (content: string) => void;
+  loadMarkdownContent: (content: string) => void;
   currentFilePath: string | null;
   setCurrentFilePath: (path: string | null) => void;
   currentFileSha: string | null;
@@ -32,6 +33,11 @@ export const MarkdownProvider = ({ children }: { children: ReactNode }) => {
     setIsDirty(true);
   };
 
+  const loadMarkdownContent = (content: string) => {
+    setMarkdownContentState(content);
+    setIsDirty(false);
+  };
+
   const toggleContextFile = (filePath: string) => {
     setSelectedContextFiles((prevSelected) =>
       prevSelected.includes(filePath)
@@ -44,6 +50,7 @@ export const MarkdownProvider = ({ children }: { children: ReactNode }) => {
     <MarkdownContext.Provider value={{
       markdownContent,
       setMarkdownContent,
+      loadMarkdownContent,
       currentFilePath,
       setCurrentFilePath,
       currentFileSha,

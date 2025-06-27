@@ -24,7 +24,7 @@ interface Branch {
 
 export default function Sidebar() {
   const { data: session } = useSession();
-  const { setMarkdownContent, setCurrentFilePath, setCurrentFileSha, markdownContent, currentBranch, setCurrentBranch, selectedContextFiles, toggleContextFile } = useMarkdown();
+  const { loadMarkdownContent, setCurrentFilePath, setCurrentFileSha, markdownContent, currentBranch, setCurrentBranch, selectedContextFiles, toggleContextFile } = useMarkdown();
   const { currentOwner, currentRepo, setCurrentOwner, setCurrentRepo, userProjects, addUserProject, loadUserProjects } = useProject();
   const [, setRepoContents] = useState<FileContent[]>([]);
   const [folderContents, setFolderContents] = useState<Map<string, FileContent[]>>(new Map());
@@ -221,7 +221,7 @@ export default function Sidebar() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setMarkdownContent(data.content);
+      loadMarkdownContent(data.content);
       setCurrentFilePath(filePath);
       setCurrentFileSha(data.sha);
     } catch (error) {
@@ -365,13 +365,6 @@ export default function Sidebar() {
     <div className="w-64 bg-gray-800 text-white p-4 space-y-4 overflow-y-auto">
       {!session ? (
         <div className="flex flex-col items-center justify-center h-full">
-          <p className="text-center mb-4">Please sign in to access project features.</p>
-          <button
-            onClick={() => signIn("github")}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Sign in with GitHub
-          </button>
           <Link
             href="https://github.com/jabelardo/escriba"
             target="_blank"
@@ -383,30 +376,6 @@ export default function Sidebar() {
         </div>
       ) : (
         <>
-          {/* General Navigation */}
-          <nav>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/projects/new-project" className="block hover:bg-gray-700 p-2 rounded">
-                  New Project
-                </Link>
-              </li>
-              <li>
-                <Link href="/settings" className="block hover:bg-gray-700 p-2 rounded">
-                  Settings
-                </Link>
-              </li>
-              <li>
-                <button
-                  onClick={() => signOut({ callbackUrl: '/' })}
-                  className="w-full text-left hover:bg-gray-700 p-2 rounded"
-                >
-                  Logout
-                </button>
-              </li>
-            </ul>
-          </nav>
-
           {/* Current Project Display */}
           <div className="mt-4 p-2 bg-gray-700 rounded">
             <h3 className="text-md font-semibold mb-1">Current Project:</h3>
@@ -416,8 +385,6 @@ export default function Sidebar() {
               <p className="text-sm text-gray-400">No project selected</p>
             )}
           </div>
-
-          
 
           {/* Projects Section */}
           <div>
@@ -606,6 +573,40 @@ export default function Sidebar() {
               </div>
             </div>
           )}
+
+          {/* General Navigation */}
+          <nav>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/projects/new-project" className="block hover:bg-gray-700 p-2 rounded">
+                  New Project
+                </Link>
+              </li>
+              <li>
+                <Link href="/settings" className="block hover:bg-gray-700 p-2 rounded">
+                  Settings
+                </Link>
+              </li>
+              <li>
+                <button
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  className="w-full text-left hover:bg-gray-700 p-2 rounded"
+                >
+                  Logout
+                </button>
+              </li>
+            </ul>
+            <div className="flex flex-col items-center justify-center h-full">
+              <Link
+                href="https://github.com/jabelardo/escriba"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 text-blue-400 hover:underline"
+              >
+                Project GitHub
+              </Link>
+            </div>
+          </nav>
         </>
       )}
     </div>
