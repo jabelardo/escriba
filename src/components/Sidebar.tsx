@@ -428,6 +428,7 @@ export default function Sidebar() {
                           onClick={() => handleProjectSelect(project.owner, project.name)}
                           className="block w-full text-left hover:bg-gray-600 p-1 rounded"
                         >
+                          {project.name}
                         </button>
                       </li>
                     ))}
