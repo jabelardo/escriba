@@ -227,6 +227,7 @@ export default function Sidebar() {
     }
 
     const fullPath = `${newFileParentFolder}/${newFilePath}`;
+    const parentFolder = fullPath.substring(0, fullPath.lastIndexOf('/')); // Get the parent folder path
 
     try {
       const response = await fetch(`/api/repos/${currentOwner}/${currentRepo}/${fullPath}`, {
@@ -248,8 +249,8 @@ export default function Sidebar() {
         setShowCreateFileDialog(false); // Close the dialog
 
         // Refresh the folder contents for the parent folder
-        const updatedContents = await fetchRepoContents(newFileParentFolder);
-        setFolderContents((prev) => new Map(prev).set(newFileParentFolder, updatedContents));
+        const updatedContents = await fetchRepoContents(parentFolder);
+        setFolderContents((prev) => new Map(prev).set(parentFolder, updatedContents));
       } else {
         alert("Error creating file.");
       }
