@@ -42,10 +42,15 @@ export async function GET(
       const content = Buffer.from(data.content, "base64").toString("utf8");
       return NextResponse.json({ content, sha: data.sha });
     } else {
-      return new Response("Content not found or unsupported type", { status: 404 });
+      // Log the data when content is not found for debugging
+      console.error("Unexpected data format for file content:", data);
+      return new Response("File content not found or unsupported type", { status: 404 });
     }
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error("Error fetching file content:", error);
+    if (error.status === 404) {
+      return new Response("File not found in repository", { status: 404 });
+    }
     return new Response("Error fetching file content", { status: 500 });
   }
 }
