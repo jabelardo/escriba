@@ -21,7 +21,6 @@ import { useParams } from "next/navigation"
 
 export default function Project() {
   const params = useParams();
-  const projectName = params.projectName as string;
   const { data: session } = useSession({
     required: true,
     onUnauthenticated() {
@@ -124,7 +123,7 @@ export default function Project() {
     })
 
     if (res.ok) {
-      const data = await res.json()
+      // const data = await res.json() // This line is commented out as data is not used
       // setMarkdownContent(data.generatedText) // This should update the context
     } else {
       alert("Error interacting with LLM.")

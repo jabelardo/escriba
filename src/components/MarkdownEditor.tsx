@@ -6,7 +6,7 @@ import "react-mde/lib/styles/css/react-mde-toolbar.css"
 import "react-mde/lib/styles/css/react-mde.css"
 import * as Showdown from "showdown"
 
-import { useMarkdown } from "@/context/MarkdownContext";
+
 
 const converter = new Showdown.Converter({
   tables: true,
@@ -39,8 +39,6 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
         generateMarkdownPreview={(markdown) =>
           Promise.resolve(converter.makeHtml(markdown))
         }
-        minEditorHeight={600}
-        heightUnits="vh"
         readOnly={isReadOnly}
       />
     </div>

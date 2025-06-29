@@ -49,7 +49,7 @@ export const importConfig = (file: File): Promise<AppConfig> => {
         const importedConfig: AppConfig = JSON.parse(event.target?.result as string);
         saveConfig(importedConfig);
         resolve(importedConfig);
-      } catch (error) {
+      } catch {
         reject(new Error("Invalid JSON file."));
       }
     };

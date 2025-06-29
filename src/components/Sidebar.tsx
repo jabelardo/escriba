@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSession, signOut, signIn } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect, useCallback } from "react";
 import { useMarkdown } from "@/context/MarkdownContext";
 import { useProject } from "@/context/ProjectContext";
@@ -212,7 +212,7 @@ export default function Sidebar() {
     }
   };
 
-  const handleLoadMd = async (filePath: string, fileSha?: string) => {
+  const handleLoadMd = async (filePath: string) => {
     if (!session?.accessToken || !currentOwner || !currentRepo) return;
 
     try {

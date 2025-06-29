@@ -5,9 +5,12 @@ import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { redirect, useRouter } from "next/navigation"
 
+import { useProject } from "@/context/ProjectContext"
+
 export default function NewProject() {
   const router = useRouter()
-  const { data: session } = useSession({
+  const { addUserProject } = useProject()
+  useSession({
     required: true,
     onUnauthenticated() {
       redirect("/")
@@ -28,7 +31,9 @@ export default function NewProject() {
 
     if (res.ok) {
       const repo = await res.json()
-      router.push(`/projects/${repo.name}`)
+      const [owner, name] = repo.full_name.split('/')
+      addUserProject(owner, name)
+      router.push("/")
     } else {
       // Handle error
       console.error("Error creating project")

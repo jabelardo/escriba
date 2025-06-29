@@ -59,8 +59,12 @@ export default function Settings() {
         setContinuePrompt(importedConfig.continuePrompt || "")
         setReviewPrompt(importedConfig.reviewPrompt || "")
         alert("Settings imported successfully!")
-      } catch (error: any) {
-        alert(`Error importing settings: ${error.message}`)
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          alert(`Error importing settings: ${error.message}`)
+        } else {
+          alert('An unknown error occurred while importing settings.')
+        }
       }
     }
   }

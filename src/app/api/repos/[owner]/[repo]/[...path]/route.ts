@@ -46,7 +46,7 @@ export async function GET(
       console.error("Unexpected data format for file content:", data);
       return new Response("File content not found or unsupported type", { status: 404 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching file content:", error);
     if (error.status === 404) {
       return new Response("File not found in repository", { status: 404 });
