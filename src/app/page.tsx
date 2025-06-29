@@ -54,6 +54,8 @@ export default function Home() {
     setShowSaveDialog(true);
   };
 
+  const isMarkdownEditorShown = currentFilePath !== null && currentFilePath !== undefined;
+
   if (session) {
     return (
       <main className="flex-1 flex flex-col">
@@ -73,11 +75,11 @@ export default function Home() {
           </div>
         </div>
         <div className="flex-1">
+          {isMarkdownEditorShown && (
           <MarkdownEditor
-            isReadOnly={currentFilePath === null || currentFilePath === undefined}
             markdownContent={markdownContent}
             setMarkdownContent={setMarkdownContent}
-          />
+          />)}
         </div>
 
         {showSaveDialog && (

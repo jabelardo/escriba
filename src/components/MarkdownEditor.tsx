@@ -13,18 +13,12 @@ const converter = new Showdown.Converter({
 })
 
 interface MarkdownEditorProps {
-  isReadOnly?: boolean;
   markdownContent: string;
   setMarkdownContent: (content: string) => void;
 }
 
-export default function MarkdownEditor({ markdownContent, setMarkdownContent, isReadOnly }: MarkdownEditorProps) {
+export default function MarkdownEditor({ markdownContent, setMarkdownContent }: MarkdownEditorProps) {
   const [selectedTab, setSelectedTab] = React.useState<"write" | "preview">("write")
-
-  // Dynamically update selectedTab based on isReadOnly
-  useEffect(() => {
-    setSelectedTab(isReadOnly ? "preview" : "write");
-  }, [isReadOnly]);
 
   
   const getEditorHeight = () => {
@@ -62,7 +56,6 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
         generateMarkdownPreview={(markdown) =>
           Promise.resolve(converter.makeHtml(markdown))
         }
-        readOnly={isReadOnly}
         initialEditorHeight={editorHeight}
         minEditorHeight={editorHeight}
         minPreviewHeight={editorHeight}
