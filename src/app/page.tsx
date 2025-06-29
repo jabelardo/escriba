@@ -76,10 +76,11 @@ export default function Home() {
         </div>
         <div className="flex-1">
           {isMarkdownEditorShown && (
-          <MarkdownEditor
-            markdownContent={markdownContent}
-            setMarkdownContent={setMarkdownContent}
-          />)}
+            <MarkdownEditor
+              markdownContent={markdownContent}
+              setMarkdownContent={setMarkdownContent}
+            />
+          )}
         </div>
 
         {showSaveDialog && (
