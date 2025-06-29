@@ -2,11 +2,8 @@
 
 import React, { useEffect } from 'react'
 import ReactMde from "react-mde"
-import "react-mde/lib/styles/css/react-mde-toolbar.css"
-import "react-mde/lib/styles/css/react-mde.css"
 import * as Showdown from "showdown"
-
-
+import 'react-mde/lib/styles/css/react-mde-all.css';
 
 const converter = new Showdown.Converter({
   tables: true,
@@ -29,8 +26,28 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
     setSelectedTab(isReadOnly ? "preview" : "write");
   }, [isReadOnly]);
 
+  const [editorHeight, setEditorHeight] = React.useState(400); // Default height
+
+  useEffect(() => {
+    const calculateEditorHeight = () => {
+      // Adjust this offset based on your layout (e.g., header, footer, padding)
+      const offset = 150; 
+      setEditorHeight(window.innerHeight - offset);
+    };
+
+    // Set initial height
+    calculateEditorHeight();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', calculateEditorHeight);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener('resize', calculateEditorHeight);
+    };
+  }, []);
+
   return (
-    <div>
       <ReactMde
         value={markdownContent}
         onChange={setMarkdownContent}
@@ -40,7 +57,9 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
           Promise.resolve(converter.makeHtml(markdown))
         }
         readOnly={isReadOnly}
+        minEditorHeight={editorHeight}
+        minPreviewHeight={editorHeight}
+        maxEditorHeight={editorHeight}
       />
-    </div>
   )
 }

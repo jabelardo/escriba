@@ -72,7 +72,7 @@ export default function Home() {
             </button>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 p-4">
           <MarkdownEditor
             isReadOnly={currentFilePath === null || currentFilePath === undefined}
             markdownContent={markdownContent}
