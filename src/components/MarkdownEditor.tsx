@@ -57,6 +57,7 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
           Promise.resolve(converter.makeHtml(markdown))
         }
         readOnly={isReadOnly}
+        initialEditorHeight={editorHeight}
         minEditorHeight={editorHeight}
         minPreviewHeight={editorHeight}
         maxEditorHeight={editorHeight}
