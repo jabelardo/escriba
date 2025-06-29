@@ -475,7 +475,7 @@ export default function Sidebar() {
             <>
               {/* Books Section */}
               <div className="mb-2">
-                <label className="block text-sm font-medium text-gray-300">Select/Create Document:</label>
+                <label className="block text-sm font-medium text-gray-300">Select/Create File:</label>
                 <div className="flex justify-between items-center">
                   <button
                     onClick={() => handleToggleSection("books")}
