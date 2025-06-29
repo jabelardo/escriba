@@ -376,69 +376,106 @@ export default function Sidebar() {
         </div>
       ) : (
         <>
-          {/* Current Project Display */}
-          <div className="mt-4 p-2 bg-gray-700 rounded">
-            <h3 className="text-md font-semibold mb-1">Current Project:</h3>
-            {currentOwner && currentRepo ? (
-              <p className="text-sm text-blue-300">{currentOwner}/{currentRepo}</p>
-            ) : (
-              <p className="text-sm text-gray-400">No project selected</p>
-            )}
-          </div>
-
           {/* Projects Section */}
           <div>
-            <button
-              onClick={() => setIsProjectsOpen(!isProjectsOpen)}
-              className="flex items-center w-full text-left hover:bg-gray-700 p-2 rounded"
-            >
-              {isProjectsOpen ? "▼" : "►"} Projects
-            </button>
-            {isProjectsOpen && (
-              <div className="ml-4 mt-2">
-                {userProjects.length > 0 ? (
-                  <ul className="space-y-1">
-                    {userProjects.map((project) => (
-                      <li key={project.id}>
-                        <button
-                          onClick={() => handleProjectSelect(project.owner, project.name)}
-                          className="block w-full text-left hover:bg-gray-600 p-1 rounded"
-                        >
-                          {project.name}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-gray-400">No projects found.</p>
-                )}
-                <div className="mt-4">
-                  <h4 className="text-md font-semibold mb-1">Add Existing Project</h4>
-                  <input
-                    type="text"
-                    placeholder="owner/repo-name"
-                    className="w-full p-2 rounded bg-gray-700 text-white text-sm mb-2"
-                    value={newProjectName}
-                    onChange={(e) => setNewProjectName(e.target.value)}
-                  />
-                  <button
-                    onClick={handleAddProject}
-                    className="w-full bg-blue-500 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
-                  >
-                    Add Project
-                  </button>
+            <div className="mb-2">
+              <label className="block text-sm font-medium text-gray-300">Current Project:</label>
+              {currentOwner && currentRepo ? (
+                <p className="text-sm text-blue-300">{currentOwner}/{currentRepo}</p>
+              ) : (
+                <p className="text-sm text-gray-400">No project selected</p>
+              )}
+            </div>
+            <div className="mb-2">
+              <label className="block text-sm font-medium text-gray-300">Select Project:</label>
+              <button
+                onClick={() => setIsProjectsOpen(!isProjectsOpen)}
+                className="flex items-center w-full text-left hover:bg-gray-700 p-2 rounded"
+              >
+                {isProjectsOpen ? "▼" : "►"} Projects
+              </button>
+              {isProjectsOpen && (
+                <div className="ml-4 mt-2">
+                  {userProjects.length > 0 ? (
+                    <ul className="space-y-1">
+                      {userProjects.map((project) => (
+                        <li key={project.id}>
+                          <button
+                            onClick={() => handleProjectSelect(project.owner, project.name)}
+                            className="block w-full text-left hover:bg-gray-600 p-1 rounded"
+                          >
+                            {project.name}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-400">No projects found.</p>
+                  )}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+            <div className="mb-2">
+              <label htmlFor="branch-select" className="block text-sm font-medium text-gray-300">Select Project Branch:</label>
+              <select
+                id="branch-select"
+                className="w-full p-2 rounded bg-gray-700 text-white text-sm mt-1"
+                value={selectedBranch}
+                onChange={(e) => setSelectedBranch(e.target.value)}
+              >
+                {branches.map((branch) => (
+                  <option key={branch.name} value={branch.name}>
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-2">
+              <label htmlFor="new-branch-name" className="block text-sm font-medium text-gray-300">Create New Project Branch:</label>
+              <input
+                type="text"
+                id="new-branch-name"
+                placeholder="New branch name"
+                className="w-full p-2 rounded bg-gray-700 text-white text-sm mt-1 mb-2"
+                value={newBranchName}
+                onChange={(e) => setNewBranchName(e.target.value)}
+              />
+              <button
+                onClick={handleCreateBranch}
+                className="w-full bg-purple-500 hover:bg-purple-700 text-white px-2 py-1 rounded text-sm"
+              >
+                Create Branch from {selectedBranch || 'main'}
+              </button>
+            </div>
+            <div className="mt-2">
+              <label className="block text-sm font-medium text-gray-300">Add Project:</label>
+              <input
+                type="text"
+                placeholder="owner/repo-name"
+                className="w-full p-2 rounded bg-gray-700 text-white text-sm mb-2"
+                value={newProjectName}
+                onChange={(e) => setNewProjectName(e.target.value)}
+              />
+              <button
+                onClick={handleAddProject}
+                className="w-full bg-blue-500 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
+              >
+                Add Project
+              </button>
+            </div>
+            <div className="mt-2">
+              <Link href="/projects/new-project" className="block hover:bg-gray-700 p-2 rounded">
+                    Create New Project
+                  </Link>
+            </div>
           </div>
-
-          <hr className="border-gray-700" />
 
           {/* Project Specific Content */}
           {currentOwner && currentRepo && (
             <>
               {/* Books Section */}
-              <div>
+              <div className="mb-2">
+                <label className="block text-sm font-medium text-gray-300">Select/Create Document:</label>
                 <div className="flex justify-between items-center">
                   <button
                     onClick={() => handleToggleSection("books")}
@@ -497,44 +534,7 @@ export default function Sidebar() {
                 )}
               </div>
 
-              <hr className="border-gray-700" />
-
-              {/* Branch Management */}
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Branch Management</h3>
-                <div className="mb-2">
-                  <label htmlFor="branch-select" className="block text-sm font-medium text-gray-300">Select Branch:</label>
-                  <select
-                    id="branch-select"
-                    className="w-full p-2 rounded bg-gray-700 text-white text-sm mt-1"
-                    value={selectedBranch}
-                    onChange={(e) => setSelectedBranch(e.target.value)}
-                  >
-                    {branches.map((branch) => (
-                      <option key={branch.name} value={branch.name}>
-                        {branch.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="new-branch-name" className="block text-sm font-medium text-gray-300">Create New Branch:</label>
-                  <input
-                    type="text"
-                    id="new-branch-name"
-                    placeholder="New branch name"
-                    className="w-full p-2 rounded bg-gray-700 text-white text-sm mt-1 mb-2"
-                    value={newBranchName}
-                    onChange={(e) => setNewBranchName(e.target.value)}
-                  />
-                  <button
-                    onClick={handleCreateBranch}
-                    className="w-full bg-purple-500 hover:bg-purple-700 text-white px-2 py-1 rounded text-sm"
-                  >
-                    Create Branch from {selectedBranch || 'main'}
-                  </button>
-                </div>
-              </div>
+             
             </>
           )}
 
@@ -577,11 +577,7 @@ export default function Sidebar() {
           {/* General Navigation */}
           <nav>
             <ul className="space-y-2">
-              <li>
-                <Link href="/projects/new-project" className="block hover:bg-gray-700 p-2 rounded">
-                  New Project
-                </Link>
-              </li>
+          
               <li>
                 <Link href="/settings" className="block hover:bg-gray-700 p-2 rounded">
                   Settings
