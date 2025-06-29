@@ -30,17 +30,19 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
   }, [isReadOnly]);
 
   return (
-    <ReactMde
-      value={markdownContent}
-      onChange={setMarkdownContent}
-      selectedTab={selectedTab}
-      onTabChange={setSelectedTab}
-      generateMarkdownPreview={(markdown) =>
-        Promise.resolve(converter.makeHtml(markdown))
-      }
-      minEditorHeight={600}
-      heightUnits="vh"
-      readOnly={isReadOnly}
-    />
+    <div>
+      <ReactMde
+        value={markdownContent}
+        onChange={setMarkdownContent}
+        selectedTab={selectedTab}
+        onTabChange={setSelectedTab}
+        generateMarkdownPreview={(markdown) =>
+          Promise.resolve(converter.makeHtml(markdown))
+        }
+        minEditorHeight={600}
+        heightUnits="vh"
+        readOnly={isReadOnly}
+      />
+    </div>
   )
 }
