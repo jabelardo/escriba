@@ -26,13 +26,19 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
     setSelectedTab(isReadOnly ? "preview" : "write");
   }, [isReadOnly]);
 
-  const [editorHeight, setEditorHeight] = React.useState(400); // Default height
+  
+  const getEditorHeight = () => {
+    // Adjust this offset based on your layout (e.g., header, footer, padding)
+    const offset = 150;
+    const editorHeight = window.innerHeight - offset;
+    return editorHeight;
+  };
+
+  const [editorHeight, setEditorHeight] = React.useState(getEditorHeight());
 
   useEffect(() => {
     const calculateEditorHeight = () => {
-      // Adjust this offset based on your layout (e.g., header, footer, padding)
-      const offset = 150; 
-      setEditorHeight(window.innerHeight - offset);
+      setEditorHeight(getEditorHeight());
     };
 
     // Set initial height
