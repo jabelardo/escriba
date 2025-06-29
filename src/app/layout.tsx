@@ -20,11 +20,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} flex flex-col h-full`}>
         <Provider>
           <ProjectProvider>
             <MarkdownProvider>
-              <div className="flex h-screen">
+              <div className="flex flex-1">
                 <Sidebar />
                 <main className="flex-1 overflow-y-auto">
                   {children}

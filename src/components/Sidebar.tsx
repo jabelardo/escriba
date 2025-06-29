@@ -363,12 +363,7 @@ export default function Sidebar() {
 
   return (
     <div
-      className="w-64 bg-gray-800 text-white p-4 space-y-4"
-      style={{
-        height: "100vh", // Full height of the viewport
-        overflowY: "auto", // Allow vertical scrolling only if necessary
-        overflowX: "hidden", // Prevent horizontal scrolling
-      }}
+      className="w-64 bg-gray-800 text-white p-4 space-y-4 h-full overflow-y-auto"
     >
       {!session ? (
         <div className="flex flex-col items-center justify-center h-full">

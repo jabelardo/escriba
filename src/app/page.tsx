@@ -72,7 +72,7 @@ export default function Home() {
             </button>
           </div>
         </div>
-        <div className="flex-1 p-4">
+        <div className="flex-1">
           <MarkdownEditor
             isReadOnly={currentFilePath === null || currentFilePath === undefined}
             markdownContent={markdownContent}
@@ -113,7 +113,7 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+    <main className="flex flex-col items-center justify-center p-24">
       <h1 className="text-4xl font-bold">Escriba</h1>
       <p className="text-lg">Your AI writing assistant</p>
       <p className="text-center mb-4">Please sign in to access project features.</p>
