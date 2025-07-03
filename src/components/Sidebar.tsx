@@ -417,38 +417,43 @@ export default function Sidebar() {
                 </div>
               )}
             </div>
-            <div className="mb-2">
-              <label htmlFor="branch-select" className="block text-sm font-medium text-gray-300">Select Project Branch:</label>
-              <select
-                id="branch-select"
-                className="w-full p-2 rounded bg-gray-700 text-white text-sm mt-1"
-                value={selectedBranch}
-                onChange={(e) => setSelectedBranch(e.target.value)}
-              >
-                {branches.map((branch) => (
-                  <option key={branch.name} value={branch.name}>
-                    {branch.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="mb-2">
-              <label htmlFor="new-branch-name" className="block text-sm font-medium text-gray-300">Create New Project Branch:</label>
-              <input
-                type="text"
-                id="new-branch-name"
-                placeholder="New branch name"
-                className="w-full p-2 rounded bg-gray-700 text-white text-sm mt-1 mb-2"
-                value={newBranchName}
-                onChange={(e) => setNewBranchName(e.target.value)}
-              />
-              <button
-                onClick={handleCreateBranch}
-                className="w-full bg-purple-500 hover:bg-purple-700 text-white px-2 py-1 rounded text-sm"
-              >
-                Create Branch from {selectedBranch || 'main'}
-              </button>
-            </div>
+            {currentOwner && currentRepo ? (
+              <>
+                <div className="mb-2">
+                  <label htmlFor="branch-select" className="block text-sm font-medium text-gray-300">Select Project Branch:</label>
+                  <select
+                    id="branch-select"
+                    className="w-full p-2 rounded bg-gray-700 text-white text-sm mt-1"
+                    value={selectedBranch}
+                    onChange={(e) => setSelectedBranch(e.target.value)}
+                  >
+                    {branches.map((branch) => (
+                      <option key={branch.name} value={branch.name}>
+                        {branch.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mb-2">
+                  <label htmlFor="new-branch-name" className="block text-sm font-medium text-gray-300">Create New Project Branch:</label>
+                  <input
+                    type="text"
+                    id="new-branch-name"
+                    placeholder="New branch name"
+                    className="w-full p-2 rounded bg-gray-700 text-white text-sm mt-1 mb-2"
+                    value={newBranchName}
+                    onChange={(e) => setNewBranchName(e.target.value)}
+                  />
+                  <button
+                    onClick={handleCreateBranch}
+                    className="w-full bg-purple-500 hover:bg-purple-700 text-white px-2 py-1 rounded text-sm"
+                  >
+                    Create Branch from {selectedBranch || 'main'}
+                  </button>
+                </div>
+              </>
+            ) : null }
+
             <div className="mt-2">
               <label className="block text-sm font-medium text-gray-300">Add Project:</label>
               <input

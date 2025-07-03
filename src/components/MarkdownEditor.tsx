@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactMde from "react-mde"
 import * as Showdown from "showdown"
 import 'react-mde/lib/styles/css/react-mde-all.css';
+import { loadConfig } from "@/lib/configStorage";
 
 const converter = new Showdown.Converter({
   tables: true,
@@ -19,8 +20,8 @@ interface MarkdownEditorProps {
 
 export default function MarkdownEditor({ markdownContent, setMarkdownContent }: MarkdownEditorProps) {
   const [selectedTab, setSelectedTab] = React.useState<"write" | "preview">("write")
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  
   const getEditorHeight = () => {
     // Adjust this offset based on your layout (e.g., header, footer, padding)
     const offset = 150;
@@ -47,7 +48,60 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
     };
   }, []);
 
+  const handleGenerateText = async () => {
+    setIsGenerating(true);
+    try {
+      const config = loadConfig();
+      const openRouterApiKey = config.openRouterApiKey;
+      const openRouterModel = config.openRouterModel || "openrouter/auto"; // Default model
+
+      if (!openRouterApiKey) {
+        alert("OpenRouter API Key is not set in settings.");
+        return;
+      }
+
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${openRouterApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: openRouterModel,
+          messages: [
+            { role: "user", content: markdownContent }
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`OpenRouter API error: ${errorData.message || response.statusText}`);
+      }
+
+      const data = await response.json();
+      const generatedText = data.choices[0]?.message?.content || "";
+      setMarkdownContent(prev => prev + "\n\n" + generatedText);
+
+    } catch (error) {
+      console.error("Error generating text:", error);
+      alert(`Failed to generate text: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
+    <div className="flex flex-col h-full">
+      <div className="p-2">
+        <button
+          onClick={handleGenerateText}
+          disabled={isGenerating}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50"
+        >
+          {isGenerating ? "Generating..." : "Generate Text (OpenRouter)"}
+        </button>
+      </div>
       <ReactMde
         value={markdownContent}
         onChange={setMarkdownContent}
@@ -61,5 +115,6 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
         minPreviewHeight={editorHeight}
         maxEditorHeight={editorHeight}
       />
+    </div>
   )
 }
