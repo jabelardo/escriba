@@ -141,11 +141,11 @@ export default function Sidebar() {
   }, [userProjects, currentOwner, currentRepo, setCurrentOwner, setCurrentRepo]);
 
   const handleAddProject = async () => {
-    if (!session?.accessToken || !newProjectName) {
+    if (!session?.accessToken || !newProjectName.trim()) {
       alert("Please enter a project name (owner/repo-name).");
       return;
     }
-    const [owner, repo] = newProjectName.split('/');
+    const [owner, repo] = newProjectName.trim().split('/');
     if (!owner || !repo) {
       alert("Invalid project name format. Please use owner/repo-name.");
       return;
@@ -156,8 +156,7 @@ export default function Sidebar() {
     setNewProjectName('');
 
     try {
-      // After adding, check for 'books' and 'references' folders
-      const repoRootContents = await fetchRepoContents('', owner, repo); // Fetch root contents of the new repo
+      const repoRootContents = await fetchRepoContents('', owner, repo);
       const hasBooks = repoRootContents.some(item => item.name === "books" && item.type === "dir");
       const hasReferences = repoRootContents.some(item => item.name === "references" && item.type === "dir");
 
@@ -173,10 +172,8 @@ export default function Sidebar() {
           await createFolderInRepo(owner, repo, "references");
         }
       }
-      // Refresh repo contents after potential folder creation
       const updatedContents = await fetchRepoContents();
       setRepoContents(updatedContents);
-
     } catch (error) {
       console.error("Error adding project:", error);
       alert("Error adding project.");
@@ -270,7 +267,7 @@ export default function Sidebar() {
   };
 
   const handleCreateBranch = async () => {
-    if (!session?.accessToken || !newBranchName || !currentOwner || !currentRepo) {
+    if (!session?.accessToken || !newBranchName.trim() || !currentOwner || !currentRepo) {
       alert("Please provide a new branch name, select a project, and ensure you are logged in.");
       return;
     }
@@ -281,13 +278,13 @@ export default function Sidebar() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          newBranchName: newBranchName,
+          newBranchName: newBranchName.trim(),
           baseBranch: currentBranch, // Create from the currently selected branch
         }),
       });
 
       if (response.ok) {
-        alert(`Branch ${newBranchName} created successfully!`);
+        alert(`Branch ${newBranchName.trim()} created successfully!`);
         setNewBranchName('');
         fetchBranches(); // Refresh the branch list
       } else {
