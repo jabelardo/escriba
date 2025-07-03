@@ -8,8 +8,8 @@ const serverConfig = loadServerConfig()
 export const authOptions: AuthOptions = {
   providers: [
     GithubProvider({
-      clientId: (serverConfig.githubId || process.env.GITHUB_ID) as string,
-      clientSecret: (serverConfig.githubSecret || process.env.GITHUB_SECRET) as string,
+      clientId: (process.env.GITHUB_ID || serverConfig.githubId) as string,
+      clientSecret: (process.env.GITHUB_SECRET || serverConfig.githubSecret) as string,
       authorization: {
         params: { scope: "repo" },
       },

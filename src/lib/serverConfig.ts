@@ -9,11 +9,21 @@ interface ServerConfig {
 }
 
 export const loadServerConfig = (): ServerConfig => {
+  let config: ServerConfig = {};
   if (fs.existsSync(CONFIG_FILE)) {
     const configContent = fs.readFileSync(CONFIG_FILE, 'utf-8');
-    return JSON.parse(configContent);
+    config = JSON.parse(configContent);
   }
-  return {};
+
+  // Override with environment variables if they exist
+  if (process.env.GITHUB_ID) {
+    config.githubId = process.env.GITHUB_ID;
+  }
+  if (process.env.GITHUB_SECRET) {
+    config.githubSecret = process.env.GITHUB_SECRET;
+  }
+
+  return config;
 };
 
 export const saveServerConfig = (config: ServerConfig) => {
