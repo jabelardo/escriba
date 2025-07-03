@@ -1,17 +1,11 @@
+'use client';
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Provider from "./Provider";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
-import { MarkdownProvider } from "@/context/MarkdownContext";
-import { ProjectProvider } from "@/context/ProjectContext";
+import AuthWrapper from "./AuthWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "Escriba",
-  description: "Your AI writing assistant",
-};
 
 export default function RootLayout({
   children,
@@ -21,18 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} flex flex-col h-full`}>
-        <Provider>
-          <ProjectProvider>
-            <MarkdownProvider>
-              <div className="flex flex-1">
-                <Sidebar />
-                <main className="flex-1 overflow-y-auto">
-                  {children}
-                </main>
-              </div>
-            </MarkdownProvider>
-          </ProjectProvider>
-        </Provider>
+        <AuthWrapper>{children}</AuthWrapper>
       </body>
     </html>
   );

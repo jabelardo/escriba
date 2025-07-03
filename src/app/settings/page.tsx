@@ -14,6 +14,8 @@ export default function Settings() {
   const [systemPrompt, setSystemPrompt] = useState("")
   const [continuePrompt, setContinuePrompt] = useState("")
   const [reviewPrompt, setReviewPrompt] = useState("")
+  const [githubId, setGithubId] = useState("")
+  const [githubSecret, setGithubSecret] = useState("")
 
   useEffect(() => {
     const config = loadConfig()
@@ -26,9 +28,11 @@ export default function Settings() {
     setSystemPrompt(config.systemPrompt || "")
     setContinuePrompt(config.continuePrompt || "")
     setReviewPrompt(config.reviewPrompt || "")
+    setGithubId(config.githubId || "")
+    setGithubSecret(config.githubSecret || "")
   }, [])
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     saveConfig({
       openRouterApiKey,
@@ -40,8 +44,29 @@ export default function Settings() {
       systemPrompt,
       continuePrompt,
       reviewPrompt,
+      githubId,
+      githubSecret,
     })
-    alert("Settings saved!")
+
+    try {
+      const response = await fetch("/api/settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ githubId, githubSecret }),
+      })
+
+      if (response.ok) {
+        alert("Settings and GitHub credentials saved successfully!")
+      } else {
+        const errorData = await response.json()
+        alert(`Error saving GitHub credentials: ${errorData.error}`)
+      }
+    } catch (error) {
+      console.error("Failed to save GitHub credentials:", error)
+      alert("Failed to save GitHub credentials due to a network error.")
+    }
   }
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,6 +83,8 @@ export default function Settings() {
         setSystemPrompt(importedConfig.systemPrompt || "")
         setContinuePrompt(importedConfig.continuePrompt || "")
         setReviewPrompt(importedConfig.reviewPrompt || "")
+        setGithubId(importedConfig.githubId || "")
+        setGithubSecret(importedConfig.githubSecret || "")
         alert("Settings imported successfully!")
       } catch (error: unknown) {
         if (error instanceof Error) {
@@ -187,6 +214,34 @@ export default function Settings() {
               rows={5}
               className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             ></textarea>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold">GitHub Configuration</h2>
+          <div>
+            <label htmlFor="githubId" className="block text-lg font-medium">
+              GitHub ID
+            </label>
+            <input
+              type="text"
+              id="githubId"
+              value={githubId}
+              onChange={(e) => setGithubId(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="githubSecret" className="block text-lg font-medium">
+              GitHub Secret
+            </label>
+            <input
+              type="password"
+              id="githubSecret"
+              value={githubSecret}
+              onChange={(e) => setGithubSecret(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
           </div>
         </section>
 
