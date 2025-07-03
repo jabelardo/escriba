@@ -9,6 +9,8 @@ export interface AppConfig {
   systemPrompt?: string;
   continuePrompt?: string;
   reviewPrompt?: string;
+  githubId?: string;
+  githubSecret?: string;
 }
 
 const CONFIG_KEY = "escriba_config";

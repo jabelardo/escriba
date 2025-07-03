@@ -1,12 +1,15 @@
 
 import NextAuth, { AuthOptions } from "next-auth"
 import GithubProvider from "next-auth/providers/github"
+import { loadServerConfig } from "@/lib/serverConfig"
+
+const serverConfig = loadServerConfig()
 
 export const authOptions: AuthOptions = {
   providers: [
     GithubProvider({
-      clientId: process.env.GITHUB_ID as string,
-      clientSecret: process.env.GITHUB_SECRET as string,
+      clientId: (serverConfig.githubId || process.env.GITHUB_ID) as string,
+      clientSecret: (serverConfig.githubSecret || process.env.GITHUB_SECRET) as string,
       authorization: {
         params: { scope: "repo" },
       },
