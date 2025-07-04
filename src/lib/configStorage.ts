@@ -2,10 +2,6 @@
 export interface AppConfig {
   openRouterApiKey?: string;
   openRouterModel?: string;
-  lmStudioEndpoint?: string;
-  lmStudioModel?: string;
-  ollamaEndpoint?: string;
-  ollamaModel?: string;
   systemPrompt?: string;
   continuePrompt?: string;
   reviewPrompt?: string;

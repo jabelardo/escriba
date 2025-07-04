@@ -7,10 +7,6 @@ import { saveConfig, loadConfig, exportConfig, importConfig } from "@/lib/config
 export default function Settings() {
   const [openRouterApiKey, setOpenRouterApiKey] = useState("")
   const [openRouterModel, setOpenRouterModel] = useState("")
-  const [lmStudioEndpoint, setLmStudioEndpoint] = useState("")
-  const [lmStudioModel, setLmStudioModel] = useState("")
-  const [ollamaEndpoint, setOllamaEndpoint] = useState("")
-  const [ollamaModel, setOllamaModel] = useState("")
   const [systemPrompt, setSystemPrompt] = useState("")
   const [continuePrompt, setContinuePrompt] = useState("")
   const [reviewPrompt, setReviewPrompt] = useState("")
@@ -21,10 +17,6 @@ export default function Settings() {
     const config = loadConfig()
     setOpenRouterApiKey(config.openRouterApiKey || "")
     setOpenRouterModel(config.openRouterModel || "")
-    setLmStudioEndpoint(config.lmStudioEndpoint || "")
-    setLmStudioModel(config.lmStudioModel || "")
-    setOllamaEndpoint(config.ollamaEndpoint || "")
-    setOllamaModel(config.ollamaModel || "")
     setSystemPrompt(config.systemPrompt || "")
     setContinuePrompt(config.continuePrompt || "")
     setReviewPrompt(config.reviewPrompt || "")
@@ -37,10 +29,6 @@ export default function Settings() {
     saveConfig({
       openRouterApiKey,
       openRouterModel,
-      lmStudioEndpoint,
-      lmStudioModel,
-      ollamaEndpoint,
-      ollamaModel,
       systemPrompt,
       continuePrompt,
       reviewPrompt,
@@ -76,10 +64,6 @@ export default function Settings() {
         const importedConfig = await importConfig(file)
         setOpenRouterApiKey(importedConfig.openRouterApiKey || "")
         setOpenRouterModel(importedConfig.openRouterModel || "")
-        setLmStudioEndpoint(importedConfig.lmStudioEndpoint || "")
-        setLmStudioModel(importedConfig.lmStudioModel || "")
-        setOllamaEndpoint(importedConfig.ollamaEndpoint || "")
-        setOllamaModel(importedConfig.ollamaModel || "")
         setSystemPrompt(importedConfig.systemPrompt || "")
         setContinuePrompt(importedConfig.continuePrompt || "")
         setReviewPrompt(importedConfig.reviewPrompt || "")
@@ -124,54 +108,6 @@ export default function Settings() {
               id="openRouterModel"
               value={openRouterModel}
               onChange={(e) => setOpenRouterModel(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="lmStudioEndpoint" className="block text-lg font-medium">
-              LM Studio Endpoint
-            </label>
-            <input
-              type="text"
-              id="lmStudioEndpoint"
-              value={lmStudioEndpoint}
-              onChange={(e) => setLmStudioEndpoint(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="lmStudioModel" className="block text-lg font-medium">
-              LM Studio Model (e.g., local-model)
-            </label>
-            <input
-              type="text"
-              id="lmStudioModel"
-              value={lmStudioModel}
-              onChange={(e) => setLmStudioModel(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="ollamaEndpoint" className="block text-lg font-medium">
-              Ollama Endpoint
-            </label>
-            <input
-              type="text"
-              id="ollamaEndpoint"
-              value={ollamaEndpoint}
-              onChange={(e) => setOllamaEndpoint(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="ollamaModel" className="block text-lg font-medium">
-              Ollama Model (e.g., llama2)
-            </label>
-            <input
-              type="text"
-              id="ollamaModel"
-              value={ollamaModel}
-              onChange={(e) => setOllamaModel(e.target.value)}
               className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>

@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   }
 
   const { selectedContextFiles, currentContent, promptType, userPrompt, llmConfig, projectName } = await req.json();
-  const { openRouterApiKey, lmStudioEndpoint, ollamaEndpoint, systemPrompt, continuePrompt, reviewPrompt } = llmConfig;
+  const { openRouterApiKey, systemPrompt, continuePrompt, reviewPrompt } = llmConfig;
 
   // Determine which LLM provider to use based on configuration
   let llmApiUrl = "";
@@ -20,12 +20,6 @@ export async function POST(req: Request) {
   if (openRouterApiKey) {
     llmApiUrl = "https://openrouter.ai/api/v1/chat/completions";
     llmApiKey = openRouterApiKey;
-  } else if (lmStudioEndpoint) {
-    llmApiUrl = `${lmStudioEndpoint}/v1/chat/completions`;
-    // LM Studio typically doesn't require an API key
-  } else if (ollamaEndpoint) {
-    llmApiUrl = `${ollamaEndpoint}/api/chat`;
-    // Ollama typically doesn't require an API key
   } else {
     return new Response("No LLM provider configured", { status: 400 });
   }
