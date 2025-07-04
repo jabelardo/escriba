@@ -51,14 +51,18 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
   const handleGenerateText = async () => {
     setIsGenerating(true);
     try {
-      const config = loadConfig();
+      const config = loadConfig(); // Load configuration from configStorage
       const openRouterApiKey = config.openRouterApiKey;
       const openRouterModel = config.openRouterModel || "openrouter/auto"; // Default model
+      const modelTemperature = config.modelTemperature || 1; // Default temperature
+      const outputLimit = config.outputLimit || "512"; // Default output limit
 
       if (!openRouterApiKey) {
         alert("OpenRouter API Key is not set in settings.");
         return;
       }
+
+      const prompt = `${config.continuePrompt || ""}\n\n${markdownContent}`; // Combine continuePrompt and markdown content
 
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -69,20 +73,20 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
         body: JSON.stringify({
           model: openRouterModel,
           messages: [
-            { role: "user", content: markdownContent }
+            { role: "user", content: prompt },
           ],
+          temperature: modelTemperature,
+          max_tokens: parseInt(outputLimit, 10), // Convert outputLimit to an integer
         }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`OpenRouter API error: ${errorData.message || response.statusText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
       const generatedText = data.choices[0]?.message?.content || "";
-      setMarkdownContent(prev => prev + "\n\n" + generatedText);
-
+      setMarkdownContent((prev) => `${prev}\n\n${generatedText}`); // Append generated text to markdown content
     } catch (error) {
       console.error("Error generating text:", error);
       alert(`Failed to generate text: ${error instanceof Error ? error.message : String(error)}`);
@@ -99,7 +103,7 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
           disabled={isGenerating}
           className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50"
         >
-          {isGenerating ? "Generating..." : "Generate Text (OpenRouter)"}
+          {isGenerating ? "Generating..." : "Generate Text"}
         </button>
       </div>
       <ReactMde
