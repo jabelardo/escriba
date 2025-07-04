@@ -47,13 +47,47 @@ export default function Sidebar() {
     const config = loadConfig();
     return config.openRouterModel || "openrouter/auto";
   });
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
 
-  const availableModels = [
-    "openrouter/auto",
-    "openrouter/gpt-3.5-turbo",
-    "openrouter/gpt-4",
-    "openrouter/custom-model",
-  ];
+  // Fetch available models dynamically from OpenRouter
+  useEffect(() => {
+    const fetchAvailableModels = async () => {
+      try {
+        const config = loadConfig(); // Load the OpenRouter API key from configStorage
+        const openRouterApiKey = config.openRouterApiKey;
+
+        if (!openRouterApiKey) {
+          console.error("OpenRouter API key is missing.");
+          setAvailableModels([]);
+          return;
+        }
+
+        const response = await fetch("https://openrouter.ai/api/v1/models", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${openRouterApiKey}`, // Use the API key for authentication
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("OpenRouter API response:", data); // Debug the response structure
+
+        // Extract model IDs or names from the response
+        const models = data.models.map((model: { id: string; name: string; description: string }) => model.id);
+        setAvailableModels(models);
+      } catch (error) {
+        console.error("Error fetching available models:", error);
+        setAvailableModels([]); // Fallback to an empty array if the fetch fails
+      }
+    };
+
+    fetchAvailableModels();
+  }, []);
 
   const fetchRepoContents = useCallback(async (path = "", owner = currentOwner, repo = currentRepo) => {
     if (!session?.accessToken || !owner || !repo) return [];
@@ -406,11 +440,17 @@ export default function Sidebar() {
               onChange={(e) => handleModelChange(e.target.value)}
               className="w-full p-2 rounded bg-gray-700 text-white text-sm mb-2"
             >
-              {availableModels.map((model) => (
-                <option key={model} value={model}>
-                  {model}
+              {availableModels.length > 0 ? (
+                availableModels.map((model) => (
+                  <option key={model} value={model}>
+                    {model}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>
+                  No models available
                 </option>
-              ))}
+              )}
             </select>
           </div>
 
