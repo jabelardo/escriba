@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useMarkdown } from "@/context/MarkdownContext";
 import { useProject } from "@/context/ProjectContext";
 import { loadConfig, saveConfig } from "@/lib/configStorage";
+import { useRouter } from "next/navigation";
 
 interface FileContent {
   name: string;
@@ -24,6 +25,7 @@ interface Branch {
 }
 
 export default function Sidebar() {
+  const router = useRouter(); // Initialize the router
   const { data: session } = useSession();
   const { loadMarkdownContent, setCurrentFilePath, setCurrentFileSha, markdownContent, currentBranch, setCurrentBranch, selectedContextFiles, toggleContextFile } = useMarkdown();
   const { currentOwner, currentRepo, setCurrentOwner, setCurrentRepo, userProjects, addUserProject, loadUserProjects } = useProject();
@@ -233,6 +235,9 @@ export default function Sidebar() {
       loadMarkdownContent(data.content);
       setCurrentFilePath(filePath);
       setCurrentFileSha(data.sha);
+
+      // Navigate to the home page after loading the markdown file
+      router.push("/");
     } catch (error) {
       console.error("Error loading markdown file:", error);
     }
@@ -356,7 +361,7 @@ export default function Sidebar() {
                     LLM
                   </button>
                   <button
-                    onClick={() => handleLoadMd(item.path, item.sha)}
+                    onClick={() => handleLoadMd(item.path)}
                     className="bg-green-500 hover:bg-green-700 text-white px-2 py-1 rounded"
                   >
                     Load
