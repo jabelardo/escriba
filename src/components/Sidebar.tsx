@@ -27,27 +27,19 @@ interface Branch {
 export default function Sidebar() {
   const router = useRouter(); // Initialize the router
   const { data: session } = useSession();
-  const { loadMarkdownContent, setCurrentFilePath, setCurrentFileSha, markdownContent, currentBranch, setCurrentBranch, selectedContextFiles, toggleContextFile } = useMarkdown();
-  const { currentOwner, currentRepo, setCurrentOwner, setCurrentRepo, userProjects, addUserProject, loadUserProjects } = useProject();
-  const [, setRepoContents] = useState<FileContent[]>([]);
-  const [folderContents, setFolderContents] = useState<Map<string, FileContent[]>>(new Map());
-  const [, setLoading] = useState(true);
-  const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
-  const [newFilePath, setNewFilePath] = useState<string>('');
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [selectedBranch, setSelectedBranch] = useState<string>('');
-  const [newBranchName, setNewBranchName] = useState<string>('');
-  const [isProjectsOpen, setIsProjectsOpen] = useState(false);
-  const [newProjectName, setNewProjectName] = useState<string>('');
-  const [isBooksOpen, setIsBooksOpen] = useState(false);
-  const [isReferencesOpen, setIsReferencesOpen] = useState(false);
-  const [showCreateFileDialog, setShowCreateFileDialog] = useState(false);
-  const [newFileParentFolder, setNewFileParentFolder] = useState<"books" | "references">("books");
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [openRouterModel, setOpenRouterModel] = useState<string>(() => {
     const config = loadConfig();
     return config.openRouterModel || "openrouter/auto";
   });
-  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [modelTemperature, setModelTemperature] = useState<number>(() => {
+    const config = loadConfig();
+    return config.modelTemperature || 1; // Default temperature
+  });
+  const [outputLimit, setOutputLimit] = useState<string>(() => {
+    const config = loadConfig();
+    return config.outputLimit || "512"; // Default output limit
+  });
 
   // Fetch available models dynamically from OpenRouter
   useEffect(() => {
@@ -77,8 +69,10 @@ export default function Sidebar() {
         const data = await response.json();
         console.log("OpenRouter API response:", data); // Debug the response structure
 
-        // Extract model IDs from the `data` array
-        const models = data.data.map((model: { id: string; name: string }) => model.id);
+        // Extract model IDs from the `data` array and sort them alphabetically
+        const models = data.data
+          .map((model: { id: string; name: string }) => model.id)
+          .sort((a, b) => a.localeCompare(b)); // Sort alphabetically
         setAvailableModels(models);
       } catch (error) {
         console.error("Error fetching available models:", error);
@@ -89,6 +83,42 @@ export default function Sidebar() {
     fetchAvailableModels();
   }, []);
 
+  const handleModelChange = (model: string) => {
+    setOpenRouterModel(model);
+    const config = loadConfig();
+    saveConfig({ ...config, openRouterModel: model });
+  };
+
+  const handleTemperatureChange = (temperature: number) => {
+    setModelTemperature(temperature);
+    const config = loadConfig();
+    saveConfig({ ...config, modelTemperature: temperature });
+  };
+
+  const handleOutputLimitChange = (limit: string) => {
+    setOutputLimit(limit);
+    const config = loadConfig();
+    saveConfig({ ...config, outputLimit: limit });
+  };
+
+  const { loadMarkdownContent, setCurrentFilePath, setCurrentFileSha, markdownContent, currentBranch, setCurrentBranch, selectedContextFiles, toggleContextFile } = useMarkdown();
+  const { currentOwner, currentRepo, setCurrentOwner, setCurrentRepo, userProjects, addUserProject, loadUserProjects } = useProject();
+  const [, setRepoContents] = useState<FileContent[]>([]);
+  const [folderContents, setFolderContents] = useState<Map<string, FileContent[]>>(new Map());
+  const [, setLoading] = useState(true);
+  const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
+  const [newFilePath, setNewFilePath] = useState<string>('');
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [selectedBranch, setSelectedBranch] = useState<string>('');
+  const [newBranchName, setNewBranchName] = useState<string>('');
+  const [isProjectsOpen, setIsProjectsOpen] = useState(false);
+  const [newProjectName, setNewProjectName] = useState<string>('');
+  const [isBooksOpen, setIsBooksOpen] = useState(false);
+  const [isReferencesOpen, setIsReferencesOpen] = useState(false);
+  const [showCreateFileDialog, setShowCreateFileDialog] = useState(false);
+  const [newFileParentFolder, setNewFileParentFolder] = useState<"books" | "references">("books");
+
+  // Fetch repo contents
   const fetchRepoContents = useCallback(async (path = "", owner = currentOwner, repo = currentRepo) => {
     if (!session?.accessToken || !owner || !repo) return [];
 
@@ -409,12 +439,6 @@ export default function Sidebar() {
     );
   };
 
-  const handleModelChange = (model: string) => {
-    setOpenRouterModel(model);
-    const config = loadConfig();
-    saveConfig({ ...config, openRouterModel: model });
-  };
-
   return (
     <div
       className="w-64 bg-gray-800 text-white p-4 space-y-4 h-full overflow-y-auto"
@@ -451,6 +475,40 @@ export default function Sidebar() {
                   No models available
                 </option>
               )}
+            </select>
+          </div>
+
+          {/* Model Temperature Input */}
+          <div className="mt-2">
+            <label className="block text-sm font-medium text-gray-300">Model Temperature:</label>
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              max="2"
+              value={modelTemperature}
+              onChange={(e) => handleTemperatureChange(parseFloat(e.target.value))}
+              className="w-full p-2 rounded bg-gray-700 text-white text-sm mb-2"
+            />
+          </div>
+
+          {/* Output Limit Dropdown */}
+          <div className="mt-2">
+            <label className="block text-sm font-medium text-gray-300">Output Limit:</label>
+            <select
+              value={outputLimit}
+              onChange={(e) => handleOutputLimitChange(e.target.value)}
+              className="w-full p-2 rounded bg-gray-700 text-white text-sm mb-2"
+            >
+              <option value="64">Micro (64)</option>
+              <option value="128">Very Short (128)</option>
+              <option value="256">Short (256)</option>
+              <option value="512">Average (512)</option>
+              <option value="1024">Above Average (1024)</option>
+              <option value="2048">Long (2048)</option>
+              <option value="4096">Very Long (4096)</option>
+              <option value="8192">Max (8192)</option>
+              <option value="16384">Super Max (16384)</option>
             </select>
           </div>
 
