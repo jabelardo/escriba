@@ -77,8 +77,8 @@ export default function Sidebar() {
         const data = await response.json();
         console.log("OpenRouter API response:", data); // Debug the response structure
 
-        // Extract model IDs or names from the response
-        const models = data.models.map((model: { id: string; name: string; description: string }) => model.id);
+        // Extract model IDs from the `data` array
+        const models = data.data.map((model: { id: string; name: string }) => model.id);
         setAvailableModels(models);
       } catch (error) {
         console.error("Error fetching available models:", error);
