@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect, useCallback } from "react";
 import { useMarkdown } from "@/context/MarkdownContext";
 import { useProject } from "@/context/ProjectContext";
+import { loadConfig, saveConfig } from "@/lib/configStorage";
 
 interface FileContent {
   name: string;
@@ -40,6 +41,17 @@ export default function Sidebar() {
   const [isReferencesOpen, setIsReferencesOpen] = useState(false);
   const [showCreateFileDialog, setShowCreateFileDialog] = useState(false);
   const [newFileParentFolder, setNewFileParentFolder] = useState<"books" | "references">("books");
+  const [openRouterModel, setOpenRouterModel] = useState<string>(() => {
+    const config = loadConfig();
+    return config.openRouterModel || "openrouter/auto";
+  });
+
+  const availableModels = [
+    "openrouter/auto",
+    "openrouter/gpt-3.5-turbo",
+    "openrouter/gpt-4",
+    "openrouter/custom-model",
+  ];
 
   const fetchRepoContents = useCallback(async (path = "", owner = currentOwner, repo = currentRepo) => {
     if (!session?.accessToken || !owner || !repo) return [];
@@ -358,6 +370,12 @@ export default function Sidebar() {
     );
   };
 
+  const handleModelChange = (model: string) => {
+    setOpenRouterModel(model);
+    const config = loadConfig();
+    saveConfig({ ...config, openRouterModel: model });
+  };
+
   return (
     <div
       className="w-64 bg-gray-800 text-white p-4 space-y-4 h-full overflow-y-auto"
@@ -375,7 +393,23 @@ export default function Sidebar() {
         </div>
       ) : (
         <>
-          {/* Projects Section */}
+          {/* OpenRouter Model Dropdown */}
+          <div className="mt-2">
+            <label className="block text-sm font-medium text-gray-300">Select OpenRouter Model:</label>
+            <select
+              value={openRouterModel}
+              onChange={(e) => handleModelChange(e.target.value)}
+              className="w-full p-2 rounded bg-gray-700 text-white text-sm mb-2"
+            >
+              {availableModels.map((model) => (
+                <option key={model} value={model}>
+                  {model}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Other Sidebar Content */}
           <div>
             <div className="mb-2">
               <label className="block text-sm font-medium text-gray-300">Current Project:</label>
@@ -458,7 +492,7 @@ export default function Sidebar() {
                 placeholder="owner/repo-name"
                 className="w-full p-2 rounded bg-gray-700 text-white text-sm mb-2"
                 value={newProjectName}
-                onChange={(e) => setNewProjectName(e.target.value)}
+                onChange={(e) => setNewProjectName(e.target.value.trim())}
               />
               <button
                 onClick={handleAddProject}
