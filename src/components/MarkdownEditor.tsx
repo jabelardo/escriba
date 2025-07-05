@@ -36,32 +36,7 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
   const [isGenerating, setIsGenerating] = useState(false);
   const mdxEditorRef = React.useRef<MDXEditorMethods>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  // const getEditorHeight = () => {
-  //   // Adjust this offset based on your layout (e.g., header, footer, padding)
-  //   const offset = 150;
-  //   const editorHeight = window.innerHeight - offset;
-  //   return editorHeight;
-  // };
-
-  // const [editorHeight, setEditorHeight] = React.useState(getEditorHeight());
   const [originalMarkdownContent, setOriginalMarkdownContent] = React.useState(markdownContent);
-
-  // useEffect(() => {
-  //   // const calculateEditorHeight = () => {
-  //   //   setEditorHeight(getEditorHeight());
-  //   // };
-
-  //   // Set initial height
-  //   //calculateEditorHeight();
-
-  //   // Add event listener for window resize
-  //   //window.addEventListener('resize', calculateEditorHeight);
-
-  //   // Cleanup event listener on component unmount
-  //   //return () => {
-  //   //  window.removeEventListener('resize', calculateEditorHeight);
-  //   //};
-  // }, []);
 
   const handleGenerateText = async () => {
     setIsGenerating(true);
@@ -139,9 +114,8 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex flex-col h-full">
       <MDXEditor 
-        className="flex-1 flex flex-col mdx-container"
         ref={mdxEditorRef}
         markdown={markdownContent} 
         onChange={handleEditorChange}
@@ -152,7 +126,6 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
           thematicBreakPlugin(),
           markdownShortcutPlugin(), // you need the corresponding plugins for the markdown blocks listed before markdownShortcutPlugin() to enable support.
           toolbarPlugin({
-            toolbarClassName: 'my-classname',
             toolbarContents: () => (
               <>
                 <UndoRedo />
@@ -187,19 +160,6 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
           }),
         ]} 
       />
-{/*       <ReactMde
-        value={markdownContent}
-        onChange={setMarkdownContent}
-        selectedTab={selectedTab}
-        onTabChange={setSelectedTab}
-        generateMarkdownPreview={(markdown) =>
-          Promise.resolve(converter.makeHtml(markdown))
-        }
-        initialEditorHeight={editorHeight}
-        minEditorHeight={editorHeight}
-        minPreviewHeight={editorHeight}
-        maxEditorHeight={editorHeight}
-      /> */}
     </div>
   )
 }

@@ -441,7 +441,7 @@ export default function Sidebar() {
 
   return (
     <div
-      className="w-64 bg-gray-800 text-white p-4 space-y-4 h-full overflow-y-auto"
+      className="w-64 bg-gray-800 text-white p-4 space-y-4 h-full overflow-y-auto flex-none"
     >
       {!session ? (
         <div className="flex flex-col items-center justify-center h-full">

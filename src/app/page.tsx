@@ -58,14 +58,14 @@ export default function Home() {
 
   if (session) {
     return (
-      <main className="flex-1 flex flex-col">
-        <div className="p-2 border-b border-gray-700 flex justify-between items-center">
+      <main className="flex flex-col">
+        <div className="p-2 border-b border-gray-700 justify-between items-center">
           <h2 className="text-lg font-semibold">
             {currentFilePath ? `${currentFilePath}` : "No file selected"}
             {isDirty && <span className="text-red-500 ml-2">*</span>}
           </h2>
         </div>
-        <div className="flex-1">
+        <div>
           {isMarkdownEditorShown && (
             <MarkdownEditor
               key={currentFilePath}
@@ -79,7 +79,7 @@ export default function Home() {
         </div>
 
         {showSaveDialog && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
             <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-96">
               <h3 className="text-lg font-semibold mb-4">Save Markdown File</h3>
               <p className="mb-4">How would you like to save your changes?</p>

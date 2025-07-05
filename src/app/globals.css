@@ -1,25 +1,6 @@
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-}
+@import "tailwindcss";
 
-/*
-  Targets the content wrapper within our custom-classed MDXEditor component.
-  This makes the content area scrollable while the toolbar remains fixed.
-*/
-.mdx-container > div:last-child {
-  flex-grow: 1;
-  overflow-y: auto;
-}
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
+

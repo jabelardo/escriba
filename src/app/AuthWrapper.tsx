@@ -48,9 +48,9 @@ export default function AuthWrapper({
     <Provider>
       <ProjectProvider>
         <MarkdownProvider>
-          <div className="flex flex-1">
+          <div className="flex h-full">
             <Sidebar />
-            <main className="flex-1 overflow-y-auto">{children}</main>
+            <main className="flex-1 h-full">{children}</main>
           </div>
         </MarkdownProvider>
       </ProjectProvider>
