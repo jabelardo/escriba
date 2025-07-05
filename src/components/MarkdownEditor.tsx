@@ -139,55 +139,54 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-2">
-      </div>
-        <MDXEditor 
-          ref={mdxEditorRef}
-          markdown={markdownContent} 
-          onChange={handleEditorChange}
-          plugins={[
-            headingsPlugin(),
-            listsPlugin(),
-            tablePlugin(),
-            thematicBreakPlugin(),
-            markdownShortcutPlugin(), // you need the corresponding plugins for the markdown blocks listed before markdownShortcutPlugin() to enable support.
-            toolbarPlugin({
-              toolbarClassName: 'my-classname',
-              toolbarContents: () => (
-                <>
-                  <UndoRedo />
-                  <Separator />
-                  <BoldItalicUnderlineToggles />
-                  <ListsToggle />
-                  <BlockTypeSelect />
-                  <InsertTable />
-                  <InsertThematicBreak />
-                  <Separator />
-                  <ButtonWithTooltip 
-                    children={<MagicWandIcon />}
-                    onClick={handleGenerateText}
-                    disabled={isGenerating}
-                    title={isGenerating ? "Generating..." : "Generate Text"}
-                  />
-                  <ButtonWithTooltip 
-                    children={<StopIcon />}
-                    onClick={handleStopGenerateText}
-                    disabled={!isGenerating}
-                    title={"Stop Generating"}
-                  />
-                  <Separator />
-                  <ButtonWithTooltip 
-                    children={<ArchiveIcon />}
-                    onClick={handleSaveFile}
-                    disabled={!isDirty}
-                    title={"Save File"}
-                  />
-                </>
-              )
-            }),
-          ]} 
-        />
+    <div className="flex-1 flex flex-col min-h-0">
+      <MDXEditor 
+        className="flex-1 flex flex-col mdx-container"
+        ref={mdxEditorRef}
+        markdown={markdownContent} 
+        onChange={handleEditorChange}
+        plugins={[
+          headingsPlugin(),
+          listsPlugin(),
+          tablePlugin(),
+          thematicBreakPlugin(),
+          markdownShortcutPlugin(), // you need the corresponding plugins for the markdown blocks listed before markdownShortcutPlugin() to enable support.
+          toolbarPlugin({
+            toolbarClassName: 'my-classname',
+            toolbarContents: () => (
+              <>
+                <UndoRedo />
+                <Separator />
+                <BoldItalicUnderlineToggles />
+                <ListsToggle />
+                <BlockTypeSelect />
+                <InsertTable />
+                <InsertThematicBreak />
+                <Separator />
+                <ButtonWithTooltip 
+                  children={<MagicWandIcon />}
+                  onClick={handleGenerateText}
+                  disabled={isGenerating}
+                  title={isGenerating ? "Generating..." : "Generate Text"}
+                />
+                <ButtonWithTooltip 
+                  children={<StopIcon />}
+                  onClick={handleStopGenerateText}
+                  disabled={!isGenerating}
+                  title={"Stop Generating"}
+                />
+                <Separator />
+                <ButtonWithTooltip 
+                  children={<ArchiveIcon />}
+                  onClick={handleSaveFile}
+                  disabled={!isDirty}
+                  title={"Save File"}
+                />
+              </>
+            )
+          }),
+        ]} 
+      />
 {/*       <ReactMde
         value={markdownContent}
         onChange={setMarkdownContent}

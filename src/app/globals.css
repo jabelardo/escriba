@@ -5,6 +5,15 @@ body {
   height: 100%;
 }
 
+/*
+  Targets the content wrapper within our custom-classed MDXEditor component.
+  This makes the content area scrollable while the toolbar remains fixed.
+*/
+.mdx-container > div:last-child {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
 *,
 *::before,
 *::after {
