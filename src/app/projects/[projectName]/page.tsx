@@ -5,7 +5,6 @@
 import { useSession } from "next-auth/react"
 import { redirect } from "next/navigation"
 import { useEffect, useState } from "react"
-import MarkdownEditor from "@/components/MarkdownEditor"
 import { loadConfig } from "@/lib/configStorage"
 import { useMarkdown } from "@/context/MarkdownContext"
 import { useProject } from "@/context/ProjectContext"
@@ -154,7 +153,6 @@ export default function Project() {
         </ul>
       </div>
       <div className="col-span-9 p-4">
-        <MarkdownEditor />
         <div className="mt-4 flex items-center space-x-2">
           <button
             onClick={handleSave}

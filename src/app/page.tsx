@@ -64,15 +64,6 @@ export default function Home() {
             {currentFilePath ? `${currentFilePath}` : "No file selected"}
             {isDirty && <span className="text-red-500 ml-2">*</span>}
           </h2>
-          <div className="space-x-2">
-            <button
-              onClick={handleSave}
-              disabled={!isDirty || !currentFilePath}
-              className={`px-4 py-2 rounded-md ${isDirty && currentFilePath ? 'bg-green-500 hover:bg-green-700' : 'bg-gray-600 cursor-not-allowed'} text-white`}
-            >
-              Save
-            </button>
-          </div>
         </div>
         <div className="flex-1">
           {isMarkdownEditorShown && (
@@ -82,6 +73,7 @@ export default function Home() {
               setMarkdownContent={setMarkdownContent}
               isDirty={isDirty}
               setIsDirty={setIsDirty}
+              handleSaveFile={handleSave}
             />
           )}
         </div>

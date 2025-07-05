@@ -29,38 +29,39 @@ interface MarkdownEditorProps {
   setMarkdownContent: (content: string) => void;
   isDirty: boolean;
   setIsDirty: (dirty: boolean) => void;
+  handleSaveFile: () => void;
 }
 
-export default function MarkdownEditor({ markdownContent, setMarkdownContent, isDirty, setIsDirty }: MarkdownEditorProps) {
+export default function MarkdownEditor({ markdownContent, setMarkdownContent, isDirty, setIsDirty, handleSaveFile }: MarkdownEditorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const mdxEditorRef = React.useRef<MDXEditorMethods>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const getEditorHeight = () => {
-    // Adjust this offset based on your layout (e.g., header, footer, padding)
-    const offset = 150;
-    const editorHeight = window.innerHeight - offset;
-    return editorHeight;
-  };
+  // const getEditorHeight = () => {
+  //   // Adjust this offset based on your layout (e.g., header, footer, padding)
+  //   const offset = 150;
+  //   const editorHeight = window.innerHeight - offset;
+  //   return editorHeight;
+  // };
 
-  const [editorHeight, setEditorHeight] = React.useState(getEditorHeight());
+  // const [editorHeight, setEditorHeight] = React.useState(getEditorHeight());
   const [originalMarkdownContent, setOriginalMarkdownContent] = React.useState(markdownContent);
 
-  useEffect(() => {
-    const calculateEditorHeight = () => {
-      setEditorHeight(getEditorHeight());
-    };
+  // useEffect(() => {
+  //   // const calculateEditorHeight = () => {
+  //   //   setEditorHeight(getEditorHeight());
+  //   // };
 
-    // Set initial height
-    calculateEditorHeight();
+  //   // Set initial height
+  //   //calculateEditorHeight();
 
-    // Add event listener for window resize
-    window.addEventListener('resize', calculateEditorHeight);
+  //   // Add event listener for window resize
+  //   //window.addEventListener('resize', calculateEditorHeight);
 
-    // Cleanup event listener on component unmount
-    return () => {
-      window.removeEventListener('resize', calculateEditorHeight);
-    };
-  }, []);
+  //   // Cleanup event listener on component unmount
+  //   //return () => {
+  //   //  window.removeEventListener('resize', calculateEditorHeight);
+  //   //};
+  // }, []);
 
   const handleGenerateText = async () => {
     setIsGenerating(true);
@@ -125,18 +126,12 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
     }
   }
 
-  const handleSaveFile = () => {
-    console.log("Saving file...");
-  }
-
   const handleEditorChange = (markdown: string, initialMarkdownNormalize: boolean) => {
-    console.log("initialMarkdownNormalize:", initialMarkdownNormalize);
     setMarkdownContent(markdown);
     if (initialMarkdownNormalize) {
       setOriginalMarkdownContent(markdown);
     } else {
       const newIsDirty = markdown !== originalMarkdownContent;
-      console.log("newIsDirty:", newIsDirty);
       setIsDirty(newIsDirty);
     }
   }
