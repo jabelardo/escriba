@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { 
   MDXEditor,
   MDXEditorMethods,
@@ -21,17 +21,20 @@ import {
   toolbarPlugin,
 } from '@mdxeditor/editor'
 import '@mdxeditor/editor/style.css'
-import { MagicWandIcon } from "@radix-ui/react-icons"
+import { ArchiveIcon, MagicWandIcon, StopIcon } from "@radix-ui/react-icons"
 import { loadConfig } from "@/lib/configStorage";
 
 interface MarkdownEditorProps {
   markdownContent: string;
   setMarkdownContent: (content: string) => void;
+  isDirty: boolean;
+  setIsDirty: (dirty: boolean) => void;
 }
 
-export default function MarkdownEditor({ markdownContent, setMarkdownContent }: MarkdownEditorProps) {
+export default function MarkdownEditor({ markdownContent, setMarkdownContent, isDirty, setIsDirty }: MarkdownEditorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const mdxEditorRef = React.useRef<MDXEditorMethods>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const getEditorHeight = () => {
     // Adjust this offset based on your layout (e.g., header, footer, padding)
     const offset = 150;
@@ -40,6 +43,7 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
   };
 
   const [editorHeight, setEditorHeight] = React.useState(getEditorHeight());
+  const [originalMarkdownContent, setOriginalMarkdownContent] = React.useState(markdownContent);
 
   useEffect(() => {
     const calculateEditorHeight = () => {
@@ -60,6 +64,9 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
 
   const handleGenerateText = async () => {
     setIsGenerating(true);
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       const config = loadConfig(); // Load configuration from configStorage
       const openRouterApiKey = config.openRouterApiKey;
@@ -88,6 +95,7 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
           temperature: modelTemperature,
           max_tokens: parseInt(outputLimit, 10), // Convert outputLimit to an integer
         }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -98,14 +106,40 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
       const generatedText = data.choices[0]?.message?.content || "";
       const newMarkdownContent = `${markdownContent}\n\n${generatedText}`; // Append generated text to markdown content
       setMarkdownContent(newMarkdownContent); // Append generated text to markdown content
-      mdxEditorRef.current?.setMarkdown(markdownContent); // use insertMarkdown in the future if you want to insert at cursor position
     } catch (error) {
-      console.error("Error generating text:", error);
-      alert(`Failed to generate text: ${error instanceof Error ? error.message : String(error)}`);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Text generation stopped by user.');
+      } else {
+        console.error("Error generating text:", error);
+        alert(`Failed to generate text: ${error instanceof Error ? error.message : String(error)}`);
+      }
     } finally {
       setIsGenerating(false);
+      abortControllerRef.current = null;
     }
   };
+
+  const handleStopGenerateText = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  }
+
+  const handleSaveFile = () => {
+    console.log("Saving file...");
+  }
+
+  const handleEditorChange = (markdown: string, initialMarkdownNormalize: boolean) => {
+    console.log("initialMarkdownNormalize:", initialMarkdownNormalize);
+    setMarkdownContent(markdown);
+    if (initialMarkdownNormalize) {
+      setOriginalMarkdownContent(markdown);
+    } else {
+      const newIsDirty = markdown !== originalMarkdownContent;
+      console.log("newIsDirty:", newIsDirty);
+      setIsDirty(newIsDirty);
+    }
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -114,7 +148,7 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
         <MDXEditor 
           ref={mdxEditorRef}
           markdown={markdownContent} 
-          onChange={setMarkdownContent}
+          onChange={handleEditorChange}
           plugins={[
             headingsPlugin(),
             listsPlugin(),
@@ -138,6 +172,19 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
                     onClick={handleGenerateText}
                     disabled={isGenerating}
                     title={isGenerating ? "Generating..." : "Generate Text"}
+                  />
+                  <ButtonWithTooltip 
+                    children={<StopIcon />}
+                    onClick={handleStopGenerateText}
+                    disabled={!isGenerating}
+                    title={"Stop Generating"}
+                  />
+                  <Separator />
+                  <ButtonWithTooltip 
+                    children={<ArchiveIcon />}
+                    onClick={handleSaveFile}
+                    disabled={!isDirty}
+                    title={"Save File"}
                   />
                 </>
               )

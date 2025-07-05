@@ -61,7 +61,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col">
         <div className="p-2 border-b border-gray-700 flex justify-between items-center">
           <h2 className="text-lg font-semibold">
-            {currentFilePath ? `Editing: ${currentFilePath}` : "No file selected"}
+            {currentFilePath ? `${currentFilePath}` : "No file selected"}
             {isDirty && <span className="text-red-500 ml-2">*</span>}
           </h2>
           <div className="space-x-2">
@@ -77,8 +77,11 @@ export default function Home() {
         <div className="flex-1">
           {isMarkdownEditorShown && (
             <MarkdownEditor
+              key={currentFilePath}
               markdownContent={markdownContent}
               setMarkdownContent={setMarkdownContent}
+              isDirty={isDirty}
+              setIsDirty={setIsDirty}
             />
           )}
         </div>

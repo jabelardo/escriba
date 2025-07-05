@@ -101,7 +101,7 @@ export default function Sidebar() {
     saveConfig({ ...config, outputLimit: limit });
   };
 
-  const { loadMarkdownContent, setCurrentFilePath, setCurrentFileSha, markdownContent, currentBranch, setCurrentBranch, selectedContextFiles, toggleContextFile } = useMarkdown();
+  const { setMarkdownContent, setCurrentFilePath, setCurrentFileSha, markdownContent, currentBranch, setCurrentBranch, selectedContextFiles, toggleContextFile } = useMarkdown();
   const { currentOwner, currentRepo, setCurrentOwner, setCurrentRepo, userProjects, addUserProject, loadUserProjects } = useProject();
   const [, setRepoContents] = useState<FileContent[]>([]);
   const [folderContents, setFolderContents] = useState<Map<string, FileContent[]>>(new Map());
@@ -296,7 +296,7 @@ export default function Sidebar() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      loadMarkdownContent(data.content);
+      setMarkdownContent(data.content);
       setCurrentFilePath(filePath);
       setCurrentFileSha(data.sha);
 
