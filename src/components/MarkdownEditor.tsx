@@ -96,8 +96,9 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
 
       const data = await response.json();
       const generatedText = data.choices[0]?.message?.content || "";
-      setMarkdownContent((prev) => `${prev}\n\n${generatedText}`); // Append generated text to markdown content
-      mdxEditorRef.current?.insertMarkdown(markdownContent);
+      const newMarkdownContent = `${markdownContent}\n\n${generatedText}`; // Append generated text to markdown content
+      setMarkdownContent(newMarkdownContent); // Append generated text to markdown content
+      mdxEditorRef.current?.setMarkdown(markdownContent); // use insertMarkdown in the future if you want to insert at cursor position
     } catch (error) {
       console.error("Error generating text:", error);
       alert(`Failed to generate text: ${error instanceof Error ? error.message : String(error)}`);
