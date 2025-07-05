@@ -8,7 +8,7 @@ import MarkdownEditor from "@/components/MarkdownEditor"
 
 export default function Home() {
   const { data: session } = useSession()
-  const { markdownContent, setMarkdownContent, currentFilePath, currentFileSha, currentBranch, isDirty, setIsDirty } = useMarkdown()
+  const { markdownContent, setMarkdownContent, currentFilePath, currentFileSha, currentBranch, isDirty, setIsDirty, setCurrentFileSha } = useMarkdown()
   const { currentOwner, currentRepo } = useProject()
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
@@ -19,7 +19,7 @@ export default function Home() {
     }
 
     try {
-      const response = await fetch(`/api/repos/${currentOwner}/${currentRepo}/${currentFilePath}`, {
+      const saveResponse = await fetch(`/api/repos/${currentOwner}/${currentRepo}/${currentFilePath}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -33,16 +33,16 @@ export default function Home() {
         }),
       });
 
-      if (response.ok) {
+      if (saveResponse.ok) {
         alert(`File saved successfully! ${directPush ? 'Pushed directly.' : 'Pull request created.'}`);
         setIsDirty(false);
-        setShowSaveDialog(false); // Close the dialog
-        // Optionally, refetch file SHA if GitHub updates it on save
-        // const data = await response.json();
-        // setCurrentFileSha(data.sha); // Uncomment if your PUT endpoint returns the new SHA
+        setShowSaveDialog(false);
+        const data = await saveResponse.json();
+        const updatedSha = data.sha;
+        setCurrentFileSha(updatedSha); 
       } else {
-        const errorData = await response.json();
-        alert(`Error saving file: ${errorData.message || response.statusText}`);
+        const errorData = await saveResponse.json();
+        alert(`Error saving file: ${errorData.message || saveResponse.statusText}`);
       }
     } catch (error) {
       console.error("Error saving markdown file:", error);

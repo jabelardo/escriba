@@ -1,17 +1,28 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import ReactMde from "react-mde"
-import * as Showdown from "showdown"
-import 'react-mde/lib/styles/css/react-mde-all.css';
+import { 
+  MDXEditor,
+  MDXEditorMethods,
+  BlockTypeSelect,
+  BoldItalicUnderlineToggles,
+  ButtonWithTooltip,
+  DialogButton,
+  InsertTable,
+  InsertThematicBreak,
+  ListsToggle,
+  Separator,
+  UndoRedo, 
+  headingsPlugin,
+  listsPlugin,
+  markdownShortcutPlugin,
+  tablePlugin,
+  thematicBreakPlugin,
+  toolbarPlugin,
+} from '@mdxeditor/editor'
+import '@mdxeditor/editor/style.css'
+import { MagicWandIcon } from "@radix-ui/react-icons"
 import { loadConfig } from "@/lib/configStorage";
-
-const converter = new Showdown.Converter({
-  tables: true,
-  simplifiedAutoLink: true,
-  strikethrough: true,
-  tasklists: true,
-})
 
 interface MarkdownEditorProps {
   markdownContent: string;
@@ -19,9 +30,8 @@ interface MarkdownEditorProps {
 }
 
 export default function MarkdownEditor({ markdownContent, setMarkdownContent }: MarkdownEditorProps) {
-  const [selectedTab, setSelectedTab] = React.useState<"write" | "preview">("write")
   const [isGenerating, setIsGenerating] = useState(false);
-
+  const mdxEditorRef = React.useRef<MDXEditorMethods>(null);
   const getEditorHeight = () => {
     // Adjust this offset based on your layout (e.g., header, footer, padding)
     const offset = 150;
@@ -87,6 +97,7 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
       const data = await response.json();
       const generatedText = data.choices[0]?.message?.content || "";
       setMarkdownContent((prev) => `${prev}\n\n${generatedText}`); // Append generated text to markdown content
+      mdxEditorRef.current?.insertMarkdown(markdownContent);
     } catch (error) {
       console.error("Error generating text:", error);
       alert(`Failed to generate text: ${error instanceof Error ? error.message : String(error)}`);
@@ -98,15 +109,41 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
   return (
     <div className="flex flex-col h-full">
       <div className="p-2">
-        <button
-          onClick={handleGenerateText}
-          disabled={isGenerating}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50"
-        >
-          {isGenerating ? "Generating..." : "Generate Text"}
-        </button>
       </div>
-      <ReactMde
+        <MDXEditor 
+          ref={mdxEditorRef}
+          markdown={markdownContent} 
+          onChange={setMarkdownContent}
+          plugins={[
+            headingsPlugin(),
+            listsPlugin(),
+            tablePlugin(),
+            thematicBreakPlugin(),
+            markdownShortcutPlugin(), // you need the corresponding plugins for the markdown blocks listed before markdownShortcutPlugin() to enable support.
+            toolbarPlugin({
+              toolbarClassName: 'my-classname',
+              toolbarContents: () => (
+                <>
+                  <UndoRedo />
+                  <Separator />
+                  <BoldItalicUnderlineToggles />
+                  <ListsToggle />
+                  <BlockTypeSelect />
+                  <InsertTable />
+                  <InsertThematicBreak />
+                  <Separator />
+                  <ButtonWithTooltip 
+                    children={<MagicWandIcon />}
+                    onClick={handleGenerateText}
+                    disabled={isGenerating}
+                    title={isGenerating ? "Generating..." : "Generate Text"}
+                  />
+                </>
+              )
+            }),
+          ]} 
+        />
+{/*       <ReactMde
         value={markdownContent}
         onChange={setMarkdownContent}
         selectedTab={selectedTab}
@@ -118,7 +155,7 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent }: 
         minEditorHeight={editorHeight}
         minPreviewHeight={editorHeight}
         maxEditorHeight={editorHeight}
-      />
+      /> */}
     </div>
   )
 }
