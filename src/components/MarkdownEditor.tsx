@@ -106,7 +106,9 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
       const data = await response.json();
       const generatedText = data.choices[0]?.message?.content || "";
       const newMarkdownContent = `${markdownContent}\n\n${generatedText}`; // Append generated text to markdown content
-      setMarkdownContent(newMarkdownContent); // Append generated text to markdown content
+      mdxEditorRef.current?.setMarkdown(newMarkdownContent); // Directly update the MDXEditor content
+      setMarkdownContent(newMarkdownContent); // Keep the context state in sync
+      setIsDirty(true);
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('Text generation stopped by user.');
