@@ -63,7 +63,7 @@ export default function Project() {
 
   const handleSave = async () => {
     if (currentFilePath && currentFileSha && session) {
-      const res = await fetch(
+      const saveResponse = await fetch(
         `/api/repos/${session.user?.username}/${params.projectName}/${currentFilePath}`,
         {
           method: "PUT",
@@ -80,7 +80,9 @@ export default function Project() {
         }
       )
 
-      if (res.ok) {
+      if (saveResponse.ok) {
+        const responseData = await saveResponse.json();
+        setCurrentFileSha(responseData.sha);
         alert(`File saved and ${directPush ? 'pushed directly' : 'pull request created'}!`);
       } else {
         alert("Error saving file.")

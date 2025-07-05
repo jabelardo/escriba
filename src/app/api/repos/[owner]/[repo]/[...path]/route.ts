@@ -78,7 +78,7 @@ export async function PUT(
       // Direct push to the specified branch or default branch
       const branchToPush = targetBranch || (await octokit.repos.get({ owner, repo })).data.default_branch;
 
-      await octokit.repos.createOrUpdateFileContents({
+      const saveResponse = await octokit.repos.createOrUpdateFileContents({
         owner: owner,
         repo: repo,
         path: filePath,
@@ -87,7 +87,8 @@ export async function PUT(
         sha: sha,
         branch: branchToPush,
       });
-      return NextResponse.json({ success: true, message: "File updated directly." });
+      const updatedSha = saveResponse.data.content?.sha
+      return NextResponse.json({ success: true, message: "File updated directly.", sha: updatedSha });
     } else {
       // Existing logic: Create a new branch and a pull request
       const { data: repoData } = await octokit.repos.get({

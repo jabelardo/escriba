@@ -7,6 +7,8 @@ export interface AppConfig {
   reviewPrompt?: string;
   githubId?: string;
   githubSecret?: string;
+  modelTemperature?: number;
+  outputLimit?: string;
 }
 
 const CONFIG_KEY = "escriba_config";
