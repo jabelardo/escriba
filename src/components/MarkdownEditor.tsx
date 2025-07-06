@@ -114,7 +114,7 @@ export default function MarkdownEditor({ markdownContent, setMarkdownContent, is
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full _markdown-editor-container">
       <MDXEditor 
         ref={mdxEditorRef}
         markdown={markdownContent} 
