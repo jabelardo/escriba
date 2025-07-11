@@ -1,6 +1,6 @@
 import { Box, Flex } from "@chakra-ui/react";
 import { Sidebar } from "./Sidebar/Sidebar";
-import { EditorPanel } from "./EditorPanel";
+import { EditorPanel } from "./Editor/EditorPanel";
 
 export const Layout = () => {
   return (

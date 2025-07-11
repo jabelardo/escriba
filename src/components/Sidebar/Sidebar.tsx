@@ -10,16 +10,15 @@ import {
   Text,
   VStack
 } from "@chakra-ui/react";
-import { ProjectInfo } from './ProjectInfo'
 import { ProjectTree } from './ProjectTree'
 import { RemoveProjectButton } from './RemoveProjectButton'
 import { AddProjectForm } from './AddProjectForm'
 import { CreateProjectForm } from './CreateProjectForm'
-import { ColorModeButton } from "@/components/ui/color-mode"
+import { SelectProjectDialog } from './SelectProjectDialog'
 
 export const SidebarActions = () => {
   return (
-    <VStack align='start' gap={2}>
+    <>
       <Dialog.Root>
         <Dialog.Trigger asChild>
           <Button size='sm' variant="ghost">+ Add / Create Project</Button>
@@ -55,11 +54,8 @@ export const SidebarActions = () => {
           </Dialog.Positioner>
         </Portal>
       </Dialog.Root>
-
-      <Button size='sm' variant="ghost" onClick={() => alert('Project Browser')}>📁 Project Browser</Button>
-      <Button size='sm' variant="ghost" onClick={() => alert('Open Settings')}>🛠️ Settings</Button>
-      <Button size='sm' variant="ghost" onClick={() => alert('Logout')}>🔒 Logout</Button>
-    </VStack>
+      <SelectProjectDialog />
+    </>
   )
 }
 
@@ -70,15 +66,15 @@ export const Sidebar = () => {
         <Box w='full'>
           <Heading size='md'>📚 Escriba</Heading>
         </Box>
+        <Text mt={4}>★ Project:</Text>
         <SidebarActions />
-        <Separator />
-        <ProjectInfo />
-        <Separator />
-        <Text mt={4}>📝 files:</Text>
-        <ProjectTree />
         <RemoveProjectButton />
         <Separator />
-        <ColorModeButton />
+        <Text mt={4}>📝 Files:</Text>
+        <ProjectTree />
+        <Separator />
+        <Button size='sm' variant="ghost" onClick={() => alert('Open Settings')}>🛠️ Settings</Button>
+        <Button size='sm' variant="ghost" onClick={() => alert('Logout')}>🔒 Logout</Button>
       </VStack>
     </Box>
   )

@@ -17,6 +17,7 @@ export const AddProjectForm = () => {
   const token = useAuthStore((s) => s.githubToken)
   const addProject = useProjectStore((s) => s.addProject)
   const projects = useProjectStore(s => s.projects)
+  const selectProject = useProjectStore(s => s.selectProject)
   const cancelRef = useRef<HTMLButtonElement>(null)
 
   const [input, setInput] = useState('')
@@ -82,7 +83,10 @@ export const AddProjectForm = () => {
       await octokit.rest.repos.get({ owner, repo })
     } catch (err: any) {
       console.error('GitHub error:', err)
-      setError(err?.response?.data?.message || 'Unknown GitHub error')
+      const errorMessage = err?.response?.data?.message 
+        ? err?.response?.data?.message + `: ${owner}/${repo}`
+        : 'Unknown GitHub error'
+      setError(errorMessage)
       setLoading(false)
       return
     }
@@ -148,7 +152,7 @@ export const AddProjectForm = () => {
           type: "error",
           duration: 3000,
           closable: true,
-        })
+        }) && setError(null)
       : null
   }
   

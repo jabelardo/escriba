@@ -61,15 +61,6 @@ const collection = createTreeCollection<TreeNode>({
 export const ProjectTree = () => {
   const { selectedContextFiles, toggleContextFile } = useProjectStore()
 
-  /*const toggleContext = (fileId: string) => {
-    setContextFiles(prev => {
-      const next = new Set(prev)
-      if (next.has(fileId)) next.delete(fileId)
-      else next.add(fileId)
-      return next
-    })
-  }*/
-
   const TreeNodeCheckbox = (props: TreeView.NodeCheckboxProps) => {
     const nodeState = useTreeViewNodeContext()
     return (
@@ -90,7 +81,7 @@ export const ProjectTree = () => {
   
   return (
     <TreeView.Root collection={collection} maxW="sm">
-      <TreeView.Label>Tree</TreeView.Label>
+   
       <TreeView.Tree>
         <TreeView.Node
           indentGuide={<TreeView.BranchIndentGuide />}
