@@ -8,17 +8,23 @@ export interface Project {
   model?: string
 }
 
+export interface ProjectFile {
+  filePath: string
+  content: string 
+}
+
 interface ProjectStore {
   projects: Project[]
   selectedProject?: Project
   selectedBranch?: string
-  selectedFile?: string  
+  selectedFile?: ProjectFile  
   addProject: (project: Project) => void
   removeProject: (owner: string, repo: string) => void
   clearProjects: () => void
   selectProject: (project: Project) => void
   setSelectedBranch: (branch: string) => void
-  setSelectedFile: (filePath: string) => void
+  setSelectedFile: (projectFile: ProjectFile) => void
+  setSelectedFileContent: (content: string) => void
   setSelectedModel: (model: string) => void
 }
 
@@ -37,11 +43,9 @@ export const useProjectStore = create<ProjectStore>()(
         }
       },
       selectProject: (project) => {
-        const newProject = { ...project }
         set({
-          selectedProject: newProject,
-          selectedBranch: newProject.branch || 'main',
-          selectedModel: newProject.model,
+          selectedProject: project,
+          selectedBranch: project.branch || 'main',
         })
       },
       setSelectedBranch: (branch) => {
@@ -66,7 +70,12 @@ export const useProjectStore = create<ProjectStore>()(
         }))
       },
       clearProjects: () => set({ projects: [] }),
-      setSelectedFile: (filePath) => set({ selectedFile: filePath }),
+      setSelectedFile: (projectFile) => set({ selectedFile: projectFile }),
+      setSelectedFileContent: (content) => {
+        const { selectedFile } = get()
+        if (!selectedFile) return
+        set({ selectedFile: {...selectedFile, content: content} })
+      },
       setSelectedModel: (model) => {
         const { selectedProject, projects } = get()
         if (!selectedProject) return
@@ -76,7 +85,6 @@ export const useProjectStore = create<ProjectStore>()(
             : p
         )
         set({
-          selectedModel: model,
           projects: updatedProjects,
           selectedProject: { ...selectedProject, model: model },
         })

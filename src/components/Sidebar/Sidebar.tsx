@@ -15,6 +15,10 @@ import { RemoveProjectButton } from './RemoveProjectButton'
 import { AddProjectForm } from './AddProjectForm'
 import { CreateProjectForm } from './CreateProjectForm'
 import { SelectProjectDialog } from './SelectProjectDialog'
+import { Octokit } from '@octokit/rest'
+import { useProjectStore } from '@/store/projectStore'
+import { useAuthStore } from '@/store/authStore'
+import { fetchProjectFileContent } from '@/lib/github/files'
 
 export const SidebarActions = () => {
   return (
@@ -60,6 +64,8 @@ export const SidebarActions = () => {
 }
 
 export const Sidebar = () => {
+  const selectedProject = useProjectStore((s) => s.selectedProject)
+    const token = useAuthStore((s) => s.githubToken)
   return (
     <Box w="280px" p={4} bg="gray.100" _dark={{ bg: "gray.800" }} h="100%">
       <VStack align="start" gap={4}>
@@ -71,7 +77,19 @@ export const Sidebar = () => {
         <RemoveProjectButton />
         <Separator />
         <Text mt={4}>📝 Files:</Text>
-        <ProjectTree />
+        <ProjectTree
+          onFileSelect={async (filePath) => {
+            if (!selectedProject || !token) return
+            const octokit = new Octokit({ auth: token })
+            const content = await fetchProjectFileContent(
+              octokit,
+              selectedProject.owner,
+              selectedProject.repo,
+              filePath
+            )
+            useProjectStore.getState().setSelectedFile({filePath, content})
+          }}
+        />
         <Separator />
         <Button size='sm' variant="ghost" onClick={() => alert('Open Settings')}>🛠️ Settings</Button>
         <Button size='sm' variant="ghost" onClick={() => alert('Logout')}>🔒 Logout</Button>

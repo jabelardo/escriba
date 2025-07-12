@@ -48,7 +48,7 @@ export const LLMModelSelect = () => {
   return (
     <Select.Root
       collection={collection}
-     value={[modelInCollection?.id]}
+     value={[modelInCollection?.id || '']}
       onValueChange={(v) => {
         const newModel = v?.items[0]
         if (newModel.id !== selectedModel) setSelectedModel(newModel.id)

@@ -7,76 +7,79 @@ import {
   useTreeViewNodeContext
 } from '@chakra-ui/react'
 import { LuFile, LuFolder } from 'react-icons/lu'
-import { useState } from 'react'
-import { useProjectStore } from '@/store/projectStore' // update path as needed
+import { useEffect, useMemo, useState } from 'react'
+import { useProjectStore } from '@/store/projectStore'
+import { useAuthStore } from '@/store/authStore'
+import { Octokit } from '@octokit/rest'
+import { fetchProjectFileTree, type FileTreeNode } from '@/lib/github/filetree'
 
-interface TreeNode {
-  id: string
-  name: string
-  children?: TreeNode[]
+interface ProjectTreeProps {
+  onFileSelect?: (fileId: string) => void
 }
 
-// Dummy project structure with nested folders
-const rootNode: TreeNode = {
-  id: 'ROOT',
-  name: '',
-  type: 'folder',
-  children: [
-    {
-      id: 'books',
-      name: 'books',
-      type: 'folder',
-      children: [
-        { id: 'books/intro.md', name: 'intro.md', type: 'file' },
-        {
-          id: 'books/chapter1',
-          name: 'chapter1',
-          type: 'folder',
-          children: [
-            { id: 'books/chapter1/scene1.md', name: 'scene1.md', type: 'file' },
-            { id: 'books/chapter1/scene2.md', name: 'scene2.md', type: 'file' },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'references',
-      name: 'references',
-      type: 'folder',
-      children: [
-        { id: 'references/style.md', name: 'style.md', type: 'file' },
-        { id: 'references/magic.md', name: 'magic.md', type: 'file' },
-      ],
-    },
-  ],
-}
+export const ProjectTree = ({ onFileSelect }: ProjectTreeProps) => {
+  const selectedProject = useProjectStore((s) => s.selectedProject)
+  const token = useAuthStore((s) => s.githubToken)
+  const [contextFiles, setContextFiles] = useState<Set<string>>(new Set())
+  const [rootNode, setRootNode] = useState<FileTreeNode | null>(null)
 
-// Create the Chakra tree collection
-const collection = createTreeCollection<TreeNode>({
-  nodeToValue: node => node.id,
-  nodeToString: node => node.name,
-  rootNode,
-})
+  const toggleContext = (fileId: string) => {
+    setContextFiles((prev) => {
+      const next = new Set(prev)
+      if (next.has(fileId)) next.delete(fileId)
+      else next.add(fileId)
+      return next
+    })
+  }
 
-export const ProjectTree = () => {
-  const { selectedContextFiles, toggleContextFile } = useProjectStore()
+  useEffect(() => {
+    const load = async () => {
+      if (!selectedProject || !token) return
+      const octokit = new Octokit({ auth: token })
+      const children = await fetchProjectFileTree(
+        octokit,
+        selectedProject.owner, 
+        selectedProject.repo,
+        (name) => name.endsWith('.md'))
+      setRootNode({
+        id: 'ROOT',
+        name: '',
+        type: 'folder',
+        children,
+      })
+    }
+    load()
+  }, [selectedProject, token])
+
+  const collection = useMemo(() => {
+    if (!rootNode) return createTreeCollection({ rootNode: { id: '', name: '', type: 'folder', children: [] } })
+    return createTreeCollection<FileTreeNode>({
+      rootNode,
+      nodeToValue: (node) => node.id,
+      nodeToString: (node) => node.name,
+    })
+  }, [rootNode])
 
   const TreeNodeCheckbox = (props: TreeView.NodeCheckboxProps) => {
     const nodeState = useTreeViewNodeContext()
     return (
-      <TreeView.NodeCheckbox aria-label="check node" {...props }>
+      <TreeView.NodeCheckbox aria-label="check node" {...props}>
         <Checkmark
           bg={{
-            base: "bg",
-            _checked: "colorPalette.solid",
-            _indeterminate: "colorPalette.solid",
+            base: 'bg',
+            _checked: 'colorPalette.solid',
+            _indeterminate: 'colorPalette.solid',
           }}
           size="sm"
           checked={nodeState.checked === true}
-          indeterminate={nodeState.checked === "indeterminate"}
+          indeterminate={nodeState.checked === 'indeterminate'}
         />
       </TreeView.NodeCheckbox>
     )
+  }
+
+  if (!selectedProject) {
+    return <div>Select a project to view its files</div>
   }
   
   return (
@@ -92,7 +95,9 @@ export const ProjectTree = () => {
                 <TreeView.BranchText>{node.name}</TreeView.BranchText>
               </TreeView.BranchControl>
             ) : (
-              <TreeView.Item onClick={() => alert(`Load file: ${node.id}`)} >
+              <TreeView.Item onClick={() => {
+                onFileSelect?.(node.id)
+              }}>              
                 <LuFile />
                 <TreeView.ItemText>{node.name}</TreeView.ItemText>
                 <TreeNodeCheckbox onClick={() => toggleContext(node.id)} />

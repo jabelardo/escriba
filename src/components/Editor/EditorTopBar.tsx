@@ -9,7 +9,11 @@ import {
 } from "@/components/ui/color-mode"
 import { LLMModelSelect } from './LLMModelSelect'
 
-export const EditorTopBar = ({ filePath }) => {
+interface EditorTopBarProps {
+  filePath?: string
+}
+
+export const EditorTopBar = ({ filePath  }: EditorTopBarProps) => {
   const project = useProjectStore(s => s.selectedProject)
   const branch = useProjectStore(s => s.selectedBranch)
   
