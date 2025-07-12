@@ -26,6 +26,7 @@ interface ProjectStore {
   setSelectedBranch: (branch: string) => void
   setSelectedFile: (projectFile: ProjectFile) => void
   setSelectedFileContent: (content: string) => void
+  setSelectedFileSha: (sha: string) => void
   setSelectedModel: (model: string) => void
 }
 
@@ -76,6 +77,11 @@ export const useProjectStore = create<ProjectStore>()(
         const { selectedFile } = get()
         if (!selectedFile) return
         set({ selectedFile: {...selectedFile, content: content} })
+      },
+      setSelectedFileSha: (sha) => {
+        const { selectedFile } = get()
+        if (!selectedFile) return
+        set({ selectedFile: {...selectedFile, sha: sha} })
       },
       setSelectedModel: (model) => {
         const { selectedProject, projects } = get()

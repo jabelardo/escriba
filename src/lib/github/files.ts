@@ -1,5 +1,5 @@
 import { Octokit } from '@octokit/rest'
-
+import { useProjectStore } from '@/store/projectStore'
 
 export async function fetchProjectFileContent(
     octokit: Octokit,
@@ -58,6 +58,10 @@ export async function fetchProjectFileContent(
       content: btoa(unescape(encodeURIComponent(content))),
       sha,
     })
+    const newSha = result.data.content?.sha
+    if (newSha) {
+      useProjectStore.getState().setSelectedFileSha(newSha)
+    }
     return result
   }
   
