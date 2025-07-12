@@ -1,10 +1,13 @@
+import { Octokit } from '@octokit/rest'
+
+
 export async function fetchProjectFileContent(
     octokit: Octokit,
     owner: string,
     repo: string,
     path: string,
     branch = 'main'
-  ): Promise<string> {
+  ): Promise<any> {
     const res = await octokit.repos.getContent({
       owner,
       repo,
@@ -17,10 +20,44 @@ export async function fetchProjectFileContent(
     }
   
     const decoded = atob(res.data.content)
-    const utf8 = new TextDecoder('utf-8').decode(
+    const content = new TextDecoder('utf-8').decode(
       Uint8Array.from([...decoded].map(char => char.charCodeAt(0)))
     )
   
-    return utf8
+    return {
+      content,
+      sha: res.data.sha
+    }
+  }
+
+  export async function saveProjectFileContent({
+    octokit,
+    owner,
+    repo,
+    path,
+    content,
+    message,
+    sha,
+    branch = 'main',
+  }: {
+    octokit: Octokit
+    owner: string
+    repo: string
+    path: string
+    content: string
+    message: string
+    sha: string
+    branch?: string
+  }) {
+    const result = await octokit.repos.createOrUpdateFileContents({
+      owner,
+      repo,
+      path,
+      branch,
+      message,
+      content: btoa(unescape(encodeURIComponent(content))),
+      sha,
+    })
+    return result
   }
   

@@ -11,6 +11,7 @@ export interface Project {
 export interface ProjectFile {
   filePath: string
   content: string 
+  sha: string
 }
 
 interface ProjectStore {

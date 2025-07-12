@@ -87,7 +87,7 @@ export const Sidebar = () => {
               selectedProject.repo,
               filePath
             )
-            useProjectStore.getState().setSelectedFile({filePath, content})
+            useProjectStore.getState().setSelectedFile({filePath, content: content.content, sha: content.sha})
           }}
         />
         <Separator />

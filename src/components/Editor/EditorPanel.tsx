@@ -25,32 +25,40 @@ import {
 import { ArchiveIcon, MagicWandIcon, StopIcon } from "@radix-ui/react-icons"
 import { EditorTopBar } from './EditorTopBar'
 import { fetchChatCompletion } from '@/lib/openrouter/chat'
+import { saveProjectFileContent } from '@/lib/github/files'
+import { Octokit } from '@octokit/rest'
+import { useAuthStore } from '@/store/authStore'
+
 
 import '@mdxeditor/editor/style.css'
 
 export const EditorPanel = () => {
   const mdxEditorRef = useRef<MDXEditorMethods | null>(null)
   const selectedFile = useProjectStore(s => s.selectedFile)
-  const markdownContent = useProjectStore(s => s.selectedFile?.content || '')
   const setMarkdownContent = useProjectStore(s => s.setSelectedFileContent)
   const abortControllerRef = useRef<AbortController | null>(null)
   const [isGenerating, setIsGenerating] = useState(false);
   const [isFileChanged, setIsFileChanged] = useState(false);
-  const [originalMarkdownContent, setOriginalMarkdownContent] = useState(markdownContent);
+  const token = useAuthStore(s => s.githubToken)
+  
+  const markdownContent = useProjectStore(s => {
+    const c = s.selectedFile?.content
+    return typeof c === 'string' ? c : ''
+  })  
 
-
-  // useEffect(() => {
-  //   setOriginalMarkdownContent(markdownContent)
-  //   setIsFileChanged(false)
-  // }, [selectedFile?.filePath])
+  const originalMarkdownRef = useRef(markdownContent)
 
   useEffect(() => {
-    if (selectedFile?.content && mdxEditorRef.current) {
-      mdxEditorRef.current.setMarkdown(selectedFile.content)
-      setOriginalMarkdownContent(selectedFile.content)
-      setIsFileChanged(false)
+    originalMarkdownRef.current = markdownContent
+    setIsFileChanged(false)
+  }, [selectedFile?.filePath])
+  
+  useEffect(() => {
+    if (markdownContent && mdxEditorRef.current) {
+      mdxEditorRef.current.setMarkdown(markdownContent)
+      originalMarkdownRef.current = markdownContent
     }
-  }, [selectedFile?.filePath, selectedFile?.content])
+  }, [selectedFile?.filePath, markdownContent])
 
 
   const handleGenerateText = async () => {
@@ -84,7 +92,7 @@ export const EditorPanel = () => {
       const newMarkdownContent = `${markdownContent}\n\n${generatedText}`
       //mdxEditorRef?.current?.setMarkdown(newMarkdownContent); 
       setMarkdownContent(newMarkdownContent)
-      setIsFileChanged(true)
+      //setIsFileChanged(true)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         console.log('Generation aborted by user')
@@ -104,16 +112,39 @@ export const EditorPanel = () => {
     }
   }
 
-  const handleSaveFile = () => {
-    alert('Function not implemented.')
-  }
+  const handleSaveFile = async () => {
+    console.log('Saving file:', {selectedFile,  token})
+    if (!selectedFile || !token) return
+
+    const octokit = new Octokit({ auth: token })
+    const project = useProjectStore.getState().selectedProject
+    if (!project) return
+
+    try {
+      await saveProjectFileContent({
+        octokit,
+        owner: project.owner,
+        repo: project.repo,
+        path: selectedFile.filePath,
+        content: selectedFile.content,
+        sha: selectedFile.sha,
+        message: `Update ${selectedFile.filePath}`,
+        branch: project.branch ?? 'main',
+      })
+      alert('File saved!')
+    } catch (err) {
+      console.error(err)
+      alert('Failed to save file')
+    }
+}
 
   const handleEditorChange = (markdown: string, initialMarkdownNormalize: boolean) => {
     setMarkdownContent(markdown)
     if (initialMarkdownNormalize) {
-      setOriginalMarkdownContent(markdown)
+      originalMarkdownRef.current = markdown
+      setIsFileChanged(false)
     } else {
-      setIsFileChanged(markdown !== originalMarkdownContent)
+      setIsFileChanged(markdown !== originalMarkdownRef.current)
     }
   }
 
