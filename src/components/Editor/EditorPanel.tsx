@@ -90,9 +90,7 @@ export const EditorPanel = () => {
       })
 
       const newMarkdownContent = `${markdownContent}\n\n${generatedText}`
-      //mdxEditorRef?.current?.setMarkdown(newMarkdownContent); 
       setMarkdownContent(newMarkdownContent)
-      //setIsFileChanged(true)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         console.log('Generation aborted by user')
@@ -157,7 +155,7 @@ export const EditorPanel = () => {
         <MDXEditor
           className="dark-theme dark-editor" 
           ref={mdxEditorRef}
-          //key={`${selectedFile?.filePath}-${markdownContent.length}`}
+          key={selectedFile?.filePath ?? 'editor'}
           markdown={markdownContent}
           onChange={handleEditorChange}
           plugins={[

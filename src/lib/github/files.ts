@@ -25,7 +25,7 @@ export async function fetchProjectFileContent(
     )
   
     return {
-      content,
+      content: content ?? '',
       sha: res.data.sha
     }
   }
