@@ -13,3 +13,8 @@ export interface OpenRouterModel {
     internal_reasoning: string
   }
 }
+
+export interface OpenRouterMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}

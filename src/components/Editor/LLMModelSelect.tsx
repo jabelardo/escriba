@@ -5,7 +5,7 @@ import {
   Portal,
 } from '@chakra-ui/react'
 import { useProjectStore } from '@/store/projectStore'
-import { fetchOpenRouterModels } from '@/lib/openrouter'
+import { fetchOpenRouterModels } from '@/lib/openrouter/models'
 import type { OpenRouterModel } from '@/types/openrouter'
 import { useAsync } from 'react-use'
 import { useMemo } from 'react'

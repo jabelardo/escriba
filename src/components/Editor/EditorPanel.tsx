@@ -24,6 +24,7 @@ import {
 } from '@mdxeditor/editor'
 import { ArchiveIcon, MagicWandIcon, StopIcon } from "@radix-ui/react-icons"
 import { EditorTopBar } from './EditorTopBar'
+import { fetchChatCompletion } from '@/lib/openrouter/chat'
 
 import '@mdxeditor/editor/style.css'
 
@@ -48,26 +49,39 @@ export const EditorPanel = () => {
     const controller = new AbortController();
     abortControllerRef.current = controller;
     try {
+      const config = {
+        model: useProjectStore.getState().selectedProject?.model || 'openrouter/auto',
+        promptPrefix: '', // customize or load from elsewhere
+        apiKey: import.meta.env.VITE_OPENROUTER_KEY,
+        temperature: 1,
+        maxTokens: 512
+      }
+  
+      if (!config.apiKey) {
+        alert('OpenRouter API key is missing')
+        return
+      }
+      const prompt = `${config.promptPrefix}\n\n${markdownContent}`
 
-      /*
-      const prompt = `${config.continuePrompt || ""}\n\n${markdownContent}`; 
-      const data = await operouterChatCompletions(prompt);
-      const generatedText = data.choices[0]?.message?.content || "";
-      */
-
-      // Simulate a text generation process by waiting for 2 seconds
-      let generatedText
-      setTimeout(() => {
-        if (controller.signal.aborted) return
-        alert('Text generation completed!')
-        generatedText = `\n\n## Generated Content\n\nThis is some generated content based on your input.`
-
-      }, 2000);
+      const generatedText = await fetchChatCompletion({
+        apiKey: config.apiKey,
+        model: config.model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: config.temperature,
+        maxTokens: config.maxTokens,
+        signal: controller.signal
+      })
 
       const newMarkdownContent = `${markdownContent}\n\n${generatedText}`
       setMarkdownContent(newMarkdownContent)
       setIsFileChanged(true)
-      
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log('Generation aborted by user')
+      } else {
+        console.error(err)
+        alert(`Failed to generate text: ${err instanceof Error ? err.message : String(err)}`)
+      }
     } finally {
       setIsGenerating(false)
       abortControllerRef.current = null
