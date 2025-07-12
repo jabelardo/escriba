@@ -29,6 +29,7 @@ import { fetchChatCompletion } from '@/lib/openrouter/chat'
 import '@mdxeditor/editor/style.css'
 
 export const EditorPanel = () => {
+  const mdxEditorRef = useRef<MDXEditorMethods | null>(null)
   const selectedFile = useProjectStore(s => s.selectedFile)
   const markdownContent = useProjectStore(s => s.selectedFile?.content || '')
   const setMarkdownContent = useProjectStore(s => s.setSelectedFileContent)
@@ -38,10 +39,18 @@ export const EditorPanel = () => {
   const [originalMarkdownContent, setOriginalMarkdownContent] = useState(markdownContent);
 
 
+  // useEffect(() => {
+  //   setOriginalMarkdownContent(markdownContent)
+  //   setIsFileChanged(false)
+  // }, [selectedFile?.filePath])
+
   useEffect(() => {
-    setOriginalMarkdownContent(markdownContent)
-    setIsFileChanged(false)
-  }, [selectedFile?.filePath])
+    if (selectedFile?.content && mdxEditorRef.current) {
+      mdxEditorRef.current.setMarkdown(selectedFile.content)
+      setOriginalMarkdownContent(selectedFile.content)
+      setIsFileChanged(false)
+    }
+  }, [selectedFile?.filePath, selectedFile?.content])
 
 
   const handleGenerateText = async () => {
@@ -73,6 +82,7 @@ export const EditorPanel = () => {
       })
 
       const newMarkdownContent = `${markdownContent}\n\n${generatedText}`
+      //mdxEditorRef?.current?.setMarkdown(newMarkdownContent); 
       setMarkdownContent(newMarkdownContent)
       setIsFileChanged(true)
     } catch (err) {
@@ -115,7 +125,8 @@ export const EditorPanel = () => {
       <Box flex='1' overflow='auto' p={2}>
         <MDXEditor
           className="dark-theme dark-editor" 
-          key={selectedFile?.filePath}
+          ref={mdxEditorRef}
+          //key={`${selectedFile?.filePath}-${markdownContent.length}`}
           markdown={markdownContent}
           onChange={handleEditorChange}
           plugins={[
