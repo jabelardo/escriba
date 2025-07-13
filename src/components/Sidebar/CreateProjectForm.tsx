@@ -4,34 +4,28 @@ import {
   Input,
   Button,
   Stack,
-  Text,
-  Spinner,
-  Dialog,
-  CloseButton
 } from '@chakra-ui/react'
-import { Toaster, toaster } from '@/components/ui/toaster'
-import { useState, useRef } from 'react'
+import { Toaster } from '@/components/ui/toaster'
+import { errorToaster, successToaster } from '@/components/common'
+import { useState } from 'react'
 import { Octokit } from '@octokit/rest'
-import { useAuthStore } from '../../store/authStore'
-import { useProjectStore } from '../../store/projectStore'
+import { useAuthStore } from '@/store/authStore'
+import { useProjectStore } from '@/store/projectStore'
 
 export const CreateProjectForm = () => {
   const token = useAuthStore(s => s.githubToken)
   const octokit = new Octokit({ auth: token })
   const addProject = useProjectStore(s => s.addProject)
-  const selectProject = useProjectStore(s => s.selectProject)
 
   const [repoName, setRepoName] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const handleCreate = async () => {
     setLoading(true)
-    setError(null)
 
-    const trimmed = repoName.trim()
-    if (!/^[\w.-]+$/.test(trimmed)) {
-      setError('Invalid repository name')
+    const repo = repoName.trim()
+    if (!/^[\w.-]+$/.test(repo)) {
+      errorToaster('Invalid repository name')
       setLoading(false)
       return
     }
@@ -43,7 +37,7 @@ export const CreateProjectForm = () => {
 
       // Create the repo
       await octokit.rest.repos.createForAuthenticatedUser({
-        name: trimmed,
+        name: repo,
         private: true,
         auto_init: false,
       })
@@ -52,7 +46,7 @@ export const CreateProjectForm = () => {
       for (const folder of ['books', 'references']) {
         await octokit.rest.repos.createOrUpdateFileContents({
           owner,
-          repo: trimmed,
+          repo: repo,
           path: `${folder}/.gitkeep`,
           message: `chore: add ${folder}/ folder`,
           content: '',
@@ -60,36 +54,19 @@ export const CreateProjectForm = () => {
         })
       }
 
-      addProject({ owner, repo: trimmed })
-      toaster.create({
-        title: 'Project created',
-        description: `${owner}/${trimmed} created and initialized successfully.`,
-        type: 'success',
-        duration: 3000,
-        closable: true,
-      })
+      addProject({ owner, repo: repo })
+      successToaster(`${owner}/${repo} created and initialized successfully.`, 'Project created')
       setRepoName('')
     } catch (e: any) {
-      console.error('Repo creation failed', e)
-      setError(e?.response?.data?.message || e.message || 'Unknown error')
+      console.log('Repo creation failed', e)
+      errorToaster(e?.response?.data?.message || e.message || 'Unknown error')
     }
 
     setLoading(false)
   }
 
-  const errorToaster = () =>
-    error &&
-    toaster.create({
-      title: 'Error',
-      description: error,
-      type: 'error',
-      duration: 3000,
-      closable: true,
-    })
-
   return (
     <Stack gap={4}>
-      {errorToaster()}
       <Input
         placeholder='New repository name'
         value={repoName}

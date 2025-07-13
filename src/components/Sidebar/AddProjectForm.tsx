@@ -4,27 +4,24 @@ import {
   Input,
   Button,
   Text,
-  Spinner,
   Dialog
 } from '@chakra-ui/react'
-import { Toaster, toaster } from "@/components/ui/toaster"
-import { useRef, useState } from 'react'
+import { Toaster } from "@/components/ui/toaster"
+import { errorToaster, successToaster, warningToaster } from '@/components/common'
+import { useState } from 'react'
 import { Octokit } from '@octokit/rest'
-import { useProjectStore } from '../../store/projectStore'
-import { useAuthStore } from '../../store/authStore'
+import { useProjectStore } from '@/store/projectStore'
+import { useAuthStore } from '@/store/authStore'
 
 export const AddProjectForm = () => {
   const token = useAuthStore((s) => s.githubToken)
   const addProject = useProjectStore((s) => s.addProject)
   const projects = useProjectStore(s => s.projects)
-  const selectProject = useProjectStore(s => s.selectProject)
-  const cancelRef = useRef<HTMLButtonElement>(null)
 
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [missing, setMissing] = useState<string[]>([])
-  const [open, setOpen] = useState(false)
+  const [openMissingFoldersDialog, setOpenMissingFoldersDialog] = useState(false)
 
   const octokit = new Octokit({
     auth: token
@@ -70,10 +67,9 @@ export const AddProjectForm = () => {
 
   const handleAdd = async () => {
     setLoading(true)
-    setError(null)
     const pr = parseOwnerRepo(input.trim())
     if (!pr) {
-      setError('Invalid repo format: owner/repo or GitHub URL')
+      errorToaster('Invalid repo format: owner/repo or GitHub URL')
       setLoading(false)
       return
     }
@@ -82,11 +78,11 @@ export const AddProjectForm = () => {
     try {
       await octokit.rest.repos.get({ owner, repo })
     } catch (err: any) {
-      console.error('GitHub error:', err)
+      console.log('GitHub error:', err)
       const errorMessage = err?.response?.data?.message 
         ? err?.response?.data?.message + `: ${owner}/${repo}`
         : 'Unknown GitHub error'
-      setError(errorMessage)
+      errorToaster(errorMessage)
       setLoading(false)
       return
     }
@@ -94,7 +90,7 @@ export const AddProjectForm = () => {
     const missingFolders = await checkFolders(owner, repo)
     if (missingFolders.length > 0) {
       setMissing(missingFolders)
-      onOpen()
+      setOpenMissingFoldersDialog(true)
     } else {
       const normalized = { 
         owner: owner.toLowerCase(), 
@@ -106,22 +102,10 @@ export const AddProjectForm = () => {
           p.repo.toLowerCase() === normalized.repo
       )
       if (exists) {
-        toaster.create({
-          title: 'Project already added',
-          description: `${owner}/${repo} is already registered.`,
-          type: 'warning',
-          duration: 3000,
-          closable: true,
-        })
+        warningToaster(`${owner}/${repo} is already registered.`, 'Project already added')
       } else {
         addProject({ owner, repo })
-        toaster.create({
-          title: 'Project added',
-          description: `${owner}/${repo} has been added successfully.`,
-          type: 'success',
-          duration: 3000,
-          closable: true,
-        })
+        successToaster(`${owner}/${repo} has been added successfully.`, 'Project added')
       }
       setInput('')
     }
@@ -135,30 +119,19 @@ export const AddProjectForm = () => {
     try {
       for (const f of missing) await createKeep(owner, repo, f)
       addProject({ owner, repo })
+      successToaster(`${owner}/${repo} has been added successfully.`, 'Project added')
       setMissing([])
-      onClose()
+      setOpenMissingFoldersDialog(false)
+      setInput('')
     } catch (e: any) {
-      setError('Failed to create folders: ' + e.message)
+      errorToaster('Failed to create folders: ' + e.message)
     } finally {
       setLoading(false)
     }
   }
   
-  const errorToaster = () => {
-    return error 
-      ? toaster.create({
-          title: 'Error',
-          description: error,
-          type: "error",
-          duration: 3000,
-          closable: true,
-        }) && setError(null)
-      : null
-  }
-  
   return (
      <Stack gap={4}>
-      {errorToaster()}
       <Input
         placeholder='owner/repo or GitHub URL'
         value={input}
@@ -173,7 +146,7 @@ export const AddProjectForm = () => {
         Add Project
       </Button>
       
-      <Dialog.Root lazyMount open={open} onOpenChange={(e) => setOpen(e.open)}>
+      <Dialog.Root lazyMount open={openMissingFoldersDialog} onOpenChange={(e) => setOpenMissingFoldersDialog(e.open)}>
         <Dialog.Backdrop />
         <Dialog.Positioner>
           <Dialog.Content>
@@ -187,12 +160,12 @@ export const AddProjectForm = () => {
               </Text>
               <Text mt={2}>
                 Escriba requires both <code>books/</code> and <code>references/</code> to function.
-                Would you like to create them now with a <code>.gitkeep</code> in each?
+                Would you like to create them to continue?
               </Text>
             </Dialog.Body>
             <Dialog.Footer>
               <Dialog.ActionTrigger asChild>
-                <Button variant='outline' onClick={() => { onClose(); setMissing([]) }}>
+                <Button variant='outline' onClick={() => { setOpenMissingFoldersDialog(false); setMissing([]); }}>
                   Cancel
                 </Button>
               </Dialog.ActionTrigger>
