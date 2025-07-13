@@ -36,15 +36,22 @@ export const PromptCombobox = ({
     return (
       <Box mb={4}>
         <Combobox.Root
+          key={selected?.id || ''}
           collection={collection}
           value={[selected?.id || '']}
-          onValueChange={v => {
-            const prompt = v?.items?.[0]
-            if (prompt) onChange(prompt)
+          onInputValueChange={v => {
+            const promptId = v.inputValue
+            const prompt = collection.items.find(i => i.id === promptId)
+            if (prompt) {
+              onChange(prompt)
+            } else {
+              onChange({id: promptId, value: '' })
+            }
           }}
           size='sm'
           width='100%'
           openOnClick
+          allowCustomValue
         >
           <Combobox.Label>{label}</Combobox.Label>
           <Combobox.Control>

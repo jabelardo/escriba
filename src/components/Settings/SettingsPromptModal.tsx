@@ -3,11 +3,9 @@
 import {
   Button,
   Dialog,
-  Input,
   Portal,
   Textarea,
   VStack,
-  Box,
   Text,
   CloseButton,
 } from '@chakra-ui/react'
@@ -25,9 +23,8 @@ export const PromptManagerDialog = ({
     prompts: Prompt[],
     updatePrompts: (prompt: Prompt) => void
 }) => {
-  const [newId, setNewId] = useState('')
-  const [newValue, setNewValue] = useState('')
-  const [selectedPrompt, setSelectedPrompt] = useState(null as Prompt | null)
+  const [promptId, setPromtId] = useState('')
+  const [promtValue, setPromtValue] = useState('')
 
   return (
     <Dialog.Root>
@@ -49,20 +46,23 @@ export const PromptManagerDialog = ({
                 <PromptCombobox
                     label='Name'
                     items={prompts}
-                    selectedPrompt={selectedPrompt}
-                    onChange={setSelectedPrompt}
+                    selectedPrompt={{ id: promptId, value: promtValue }}
+                    onChange={(promt) => {
+                        setPromtId(promt.id)
+                        setPromtValue(promt.value)
+                    }}
                 />
                 <Text fontWeight='bold'>Content</Text>
                 <Textarea
                     placeholder='Prompt content...'
-                    value={newValue}
-                    onChange={e => setNewValue(e.target.value)}
+                    value={promtValue}
+                    onChange={e => setPromtValue(e.target.value)}
                 />
                 <Button
                     onClick={() => {
-                        updatePrompts({ id: newId, value: newValue })
+                        updatePrompts({ id: promptId, value: promtValue })
                     }}
-                    disabled={!newId || !newValue}
+                    disabled={!promptId || !promtValue}
                 >
                     Save Prompt
                 </Button>

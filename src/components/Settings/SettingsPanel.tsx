@@ -56,7 +56,7 @@ export const SettingsPanel = () => {
       <PromptManagerDialog 
         category='continue' 
         prompts={continuePrompts}
-        updatePrompts={addContinuePrompt}
+        updatePrompts={updateContinuePrompts}
       />
 
       <PromptSelector

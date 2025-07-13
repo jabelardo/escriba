@@ -22,6 +22,7 @@ import { useProjectStore } from '@/store/projectStore'
 import { useAuthStore } from '@/store/authStore'
 import { fetchProjectFileContent } from '@/lib/github/files'
 import { SettingsPanel } from "../Settings/SettingsPanel";
+import ErrorBoundary from "../ErrorBoundary ";
 
 const AddCreateProjectDialog = () => {
   return (
@@ -118,7 +119,9 @@ export const Sidebar = () => {
           }}
         />
         <Separator />
+        <ErrorBoundary>
         <SettingsDialog />
+        </ErrorBoundary>
         <Button size='sm' variant="ghost" onClick={() => alert('Logout')}>🔒 Logout</Button>
       </VStack>
     </Box>
