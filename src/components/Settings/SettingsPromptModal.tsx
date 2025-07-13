@@ -48,6 +48,7 @@ export const PromptManagerDialog = ({
                     items={prompts}
                     selectedPrompt={{ id: promptId, value: promtValue }}
                     onChange={(promt) => {
+                        console.log(promt)
                         setPromtId(promt.id)
                         setPromtValue(promt.value)
                     }}
@@ -56,10 +57,13 @@ export const PromptManagerDialog = ({
                 <Textarea
                     placeholder='Prompt content...'
                     value={promtValue}
-                    onChange={e => setPromtValue(e.target.value)}
+                    onChange={e => {
+                        setPromtValue(e.target.value)
+                    }}
                 />
                 <Button
                     onClick={() => {
+                        console.log(promptId, promtValue)
                         updatePrompts({ id: promptId, value: promtValue })
                     }}
                     disabled={!promptId || !promtValue}

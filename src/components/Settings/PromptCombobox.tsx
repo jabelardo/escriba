@@ -55,7 +55,7 @@ export const PromptCombobox = ({
         >
           <Combobox.Label>{label}</Combobox.Label>
           <Combobox.Control>
-            <Combobox.Input placeholder="Select or type a prompt name..." />
+            <Combobox.Input placeholder="Select existing or type a new prompt name..." />
             <Combobox.IndicatorGroup>
               <Combobox.ClearTrigger />
               <Combobox.Trigger />

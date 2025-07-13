@@ -49,12 +49,12 @@ export const useSettingsStore = create<SettingsStore>()(
     },
     updateContinuePrompts: (prompt) => {
       set((state) => ({
-        systemPrompts: addOrUpdatePrompt(prompt, state.continuePrompts)
+        continuePrompts: addOrUpdatePrompt(prompt, state.continuePrompts)
       }))
     },
     updateRevisePrompts: (prompt) => {
       set((state) => ({
-        systemPrompts: addOrUpdatePrompt(prompt, state.revisePrompts)
+        revisePrompts: addOrUpdatePrompt(prompt, state.revisePrompts)
       }))
     },
   }), {
