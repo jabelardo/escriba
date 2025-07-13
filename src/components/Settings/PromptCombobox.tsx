@@ -2,25 +2,25 @@
 
 import {
   Box,
-  Select,
+  Combobox,
   createListCollection,
 } from '@chakra-ui/react'
 import { useMemo } from 'react'
 import type { Prompt } from '@/types/settings'
 
-type PromptSelectorProps = {
+type PromptComboboxProps = {
     label: string
     items: Prompt[]
-    selectedPrompt: Prompt | undefined
+    selectedPrompt: Prompt | undefined | null
     onChange: (prompt: Prompt) => void
   }
   
-export const PromptSelector = ({
+export const PromptCombobox = ({
     label,
     items,
     selectedPrompt,
     onChange,
-  }: PromptSelectorProps) =>{
+  }: PromptComboboxProps) =>{
     const collection = useMemo(
       () =>
         createListCollection({
@@ -35,7 +35,7 @@ export const PromptSelector = ({
   
     return (
       <Box mb={4}>
-        <Select.Root
+        <Combobox.Root
           collection={collection}
           value={[selected?.id || '']}
           onValueChange={v => {
@@ -44,28 +44,28 @@ export const PromptSelector = ({
           }}
           size='sm'
           width='100%'
+          openOnClick
         >
-          <Select.HiddenSelect />
-          <Select.Label>{label}</Select.Label>
-          <Select.Control>
-            <Select.Trigger>
-              <Select.ValueText placeholder={`Select ${label}`} />
-            </Select.Trigger>
-            <Select.IndicatorGroup>
-              <Select.Indicator />
-            </Select.IndicatorGroup>
-          </Select.Control>
-          <Select.Positioner>
-            <Select.Content>
+          <Combobox.Label>{label}</Combobox.Label>
+          <Combobox.Control>
+            <Combobox.Input placeholder="Select or type a prompt name..." />
+            <Combobox.IndicatorGroup>
+              <Combobox.ClearTrigger />
+              <Combobox.Trigger />
+            </Combobox.IndicatorGroup>
+          </Combobox.Control>
+          <Combobox.Positioner>
+            <Combobox.Content>
+              <Combobox.Empty>New prompt</Combobox.Empty>
               {collection.items.map(item => (
-                <Select.Item item={item} key={item.id}>
+                <Combobox.Item item={item} key={item.id}>
                   {item.id}
-                  <Select.ItemIndicator />
-                </Select.Item>
+                  <Combobox.ItemIndicator />
+                </Combobox.Item>
               ))}
-            </Select.Content>
-          </Select.Positioner>
-        </Select.Root>
+            </Combobox.Content>
+          </Combobox.Positioner>
+        </Combobox.Root>
       </Box>
     )
   }

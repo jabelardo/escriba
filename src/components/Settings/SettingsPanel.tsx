@@ -7,9 +7,9 @@ import {
   Input,
 } from '@chakra-ui/react'
 import { useSettingsStore } from '@/store/settingsStore'
-import type { Prompt } from '@/types/settings'
 import { PromptSelector } from './PromptSelector'
 import { FavoritesModelSelect } from './FavoritesModelSelect'
+import { PromptManagerDialog } from './SettingsPromptModal'
 
 
 export const SettingsPanel = () => {
@@ -27,6 +27,9 @@ export const SettingsPanel = () => {
     setActiveRevisePrompt,
     setOpenrouterKey,
     setGithubToken,
+    updateContinuePrompts,
+    updateSystemPrompts,
+    updateRevisePrompts,
   } = useSettingsStore()
 
   return (
@@ -48,6 +51,12 @@ export const SettingsPanel = () => {
         items={continuePrompts}
         selectedPrompt={activeContinuePrompt}
         onChange={setActiveContinuePrompt}
+      />
+
+      <PromptManagerDialog 
+        category='continue' 
+        prompts={continuePrompts}
+        updatePrompts={addContinuePrompt}
       />
 
       <PromptSelector

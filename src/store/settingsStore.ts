@@ -1,5 +1,6 @@
 // store/settingsStore.ts
 import type { Prompt } from '@/types/settings'
+import { addOrUpdatePrompt } from '@/utils/arrayutils'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
@@ -19,10 +20,13 @@ interface SettingsStore {
   setActiveSystemPrompt: (prompt: Prompt) => void
   setActiveContinuePrompt: (prompt: Prompt) => void
   setActiveRevisePrompt: (prompt: Prompt) => void
+  updateSystemPrompts: (prompt: Prompt) => void
+  updateContinuePrompts: (prompt: Prompt) => void
+  updateRevisePrompts: (prompt: Prompt) => void
 }
 
 export const useSettingsStore = create<SettingsStore>()(
-  persist((set) => ({
+  persist((set, get) => ({
     openrouterKey: '',
     githubToken: '',
     favoriteModels: [],
@@ -38,6 +42,21 @@ export const useSettingsStore = create<SettingsStore>()(
     setActiveSystemPrompt: (activeSystemPrompt) => set({ activeSystemPrompt }),
     setActiveContinuePrompt: (activeContinuePrompt) => set({ activeContinuePrompt }),
     setActiveRevisePrompt: (activeRevisePrompt) => set({ activeRevisePrompt }),
+    updateSystemPrompts: (prompt) => {
+      set((state) => ({
+          systemPrompts: addOrUpdatePrompt(prompt, state.systemPrompts)
+      }))
+    },
+    updateContinuePrompts: (prompt) => {
+      set((state) => ({
+        systemPrompts: addOrUpdatePrompt(prompt, state.continuePrompts)
+      }))
+    },
+    updateRevisePrompts: (prompt) => {
+      set((state) => ({
+        systemPrompts: addOrUpdatePrompt(prompt, state.revisePrompts)
+      }))
+    },
   }), {
     name: 'escriba-settings',
   })

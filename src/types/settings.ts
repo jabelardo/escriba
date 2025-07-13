@@ -1,5 +1,4 @@
 export interface Prompt {
-    id: string;
-    name: string;
-    
+    id: string
+    value: string
 }
