@@ -29,8 +29,10 @@ import { saveProjectFileContent } from '@/lib/github/files'
 import { Octokit } from '@octokit/rest'
 import { useAuthStore } from '@/store/authStore'
 
-
 import '@mdxeditor/editor/style.css'
+import "./my-editor.css";
+import "./custom-lexical-theme.css"
+import { customLexicalTheme } from "./CustomLexicalTheme";
 
 export const EditorPanel = () => {
   const mdxEditorRef = useRef<MDXEditorMethods | null>(null)
@@ -146,6 +148,7 @@ export const EditorPanel = () => {
     }
   }
 
+
   return (
     <Flex direction='column' h='100%' overflow='hidden'>
       <EditorTopBar
@@ -154,6 +157,9 @@ export const EditorPanel = () => {
       <Box flex='1' overflow='auto' p={2}>
         <MDXEditor
           className="dark-theme dark-editor" 
+          autoFocus
+          contentEditableClassName="my-editor"
+          lexicalTheme={customLexicalTheme}
           ref={mdxEditorRef}
           key={selectedFile?.filePath ?? 'editor'}
           markdown={markdownContent}

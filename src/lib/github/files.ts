@@ -49,13 +49,15 @@ export async function fetchProjectFileContent(
     sha: string
     branch?: string
   }) {
+    const contentEncoded = btoa(content)
+    console.log('Saving file:', {content, contentEncoded})
     const result = await octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
       path,
       branch,
       message,
-      content: btoa(unescape(encodeURIComponent(content))),
+      content: contentEncoded,
       sha,
     })
     const newSha = result.data.content?.sha
