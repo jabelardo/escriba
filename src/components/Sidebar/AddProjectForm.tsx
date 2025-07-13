@@ -52,7 +52,7 @@ export const AddProjectForm = () => {
     return missingLocal
   }
 
-  const createKeep = async (owner: string, repo: string, folder: string) => {
+  const createGitkeep = async (owner: string, repo: string, folder: string) => {
     const path = `${folder}/.gitkeep`
     const message = `chore: ensure ${folder}/ exists`
     await octokit.rest.repos.createOrUpdateFileContents({
@@ -117,7 +117,7 @@ export const AddProjectForm = () => {
     const [owner, repo] = parseOwnerRepo(input.trim())!
     setLoading(true)
     try {
-      for (const f of missing) await createKeep(owner, repo, f)
+      for (const f of missing) await createGitkeep(owner, repo, f)
       addProject({ owner, repo })
       successToaster(`${owner}/${repo} has been added successfully.`, 'Project added')
       setMissing([])

@@ -20,11 +20,15 @@ export const CreateProjectForm = () => {
   const [repoName, setRepoName] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const isValidRepo = (repoName: string) => {
+    const repo = repoName.trim()
+    return /^[\w.-]+$/.test(repo)
+  }
+
   const handleCreate = async () => {
     setLoading(true)
 
-    const repo = repoName.trim()
-    if (!/^[\w.-]+$/.test(repo)) {
+    if (!isValidRepo(repoName)) {
       errorToaster('Invalid repository name')
       setLoading(false)
       return
@@ -34,6 +38,7 @@ export const CreateProjectForm = () => {
       // Get user info to determine repo owner
       const { data: user } = await octokit.rest.users.getAuthenticated()
       const owner = user.login
+      const repo = repoName.trim()
 
       // Create the repo
       await octokit.rest.repos.createForAuthenticatedUser({
@@ -59,7 +64,7 @@ export const CreateProjectForm = () => {
       setRepoName('')
     } catch (e: any) {
       console.log('Repo creation failed', e)
-      errorToaster(e?.response?.data?.message || e.message || 'Unknown error')
+      errorToaster(e?.response?.data?.errors?.[0]?.message || e.message || 'Unknown error')
     }
 
     setLoading(false)
@@ -76,7 +81,7 @@ export const CreateProjectForm = () => {
         colorPalette='teal'
         onClick={handleCreate}
         loading={loading}
-        disabled={!repoName.trim() || loading}
+        disabled={!isValidRepo(repoName) || loading}
       >
         Create Project
       </Button>
