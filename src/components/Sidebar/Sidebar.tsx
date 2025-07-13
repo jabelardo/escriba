@@ -1,3 +1,5 @@
+'use client'
+
 import { 
   Box, 
   Button,
@@ -19,10 +21,10 @@ import { Octokit } from '@octokit/rest'
 import { useProjectStore } from '@/store/projectStore'
 import { useAuthStore } from '@/store/authStore'
 import { fetchProjectFileContent } from '@/lib/github/files'
+import { SettingsPanel } from "../Settings/SettingsPanel";
 
-export const SidebarActions = () => {
+const AddCreateProjectDialog = () => {
   return (
-    <>
       <Dialog.Root>
         <Dialog.Trigger asChild>
           <Button size='sm' variant="ghost">+ Add / Create Project</Button>
@@ -58,10 +60,34 @@ export const SidebarActions = () => {
           </Dialog.Positioner>
         </Portal>
       </Dialog.Root>
-      <SelectProjectDialog />
-    </>
   )
 }
+
+const SettingsDialog = () => {
+  return (
+    <Dialog.Root>
+      <Dialog.Trigger asChild>
+        <Button size='sm' variant="ghost">🛠️ Settings</Button>
+      </Dialog.Trigger>
+      <Portal>
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content maxW="640px">
+            <Dialog.Header>
+              <Dialog.Title>Settings</Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Body>
+              <SettingsPanel />
+            </Dialog.Body>
+            <Dialog.CloseTrigger asChild>
+              <CloseButton size="sm" />
+            </Dialog.CloseTrigger>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Portal>
+    </Dialog.Root>
+  )
+} 
 
 export const Sidebar = () => {
   const selectedProject = useProjectStore((s) => s.selectedProject)
@@ -73,7 +99,8 @@ export const Sidebar = () => {
           <Heading size='md'>📚 Escriba</Heading>
         </Box>
         <Text mt={4}>★ Project:</Text>
-        <SidebarActions />
+        <AddCreateProjectDialog />
+        <SelectProjectDialog />
         <RemoveProjectButton />
         <Separator />
         <Text mt={4}>📝 Files:</Text>
@@ -91,7 +118,7 @@ export const Sidebar = () => {
           }}
         />
         <Separator />
-        <Button size='sm' variant="ghost" onClick={() => alert('Open Settings')}>🛠️ Settings</Button>
+        <SettingsDialog />
         <Button size='sm' variant="ghost" onClick={() => alert('Logout')}>🔒 Logout</Button>
       </VStack>
     </Box>

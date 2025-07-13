@@ -6,15 +6,15 @@ import {
   Spinner,
   Portal,
 } from '@chakra-ui/react'
-import { useProjectStore } from '@/store/projectStore'
+import { useSettingsStore } from '@/store/settingsStore'
 import { fetchOpenRouterModels } from '@/lib/openrouter/models'
 import type { OpenRouterModel } from '@/types/openrouter'
 import { useAsync } from 'react-use'
 import { useMemo } from 'react'
 
-export const LLMModelSelect = () => {
-  const selectedModel = useProjectStore(s => s.selectedProject?.model)
-  const setSelectedModel = useProjectStore(s => s.setSelectedModel)
+export const FavoritesModelSelect = () => {
+  const favoriteModels = useSettingsStore((s) => s.favoriteModels)
+  const setFavoriteModels = useSettingsStore((s) => s.setFavoriteModels)
 
   const state = useAsync(() =>
     fetchOpenRouterModels(import.meta.env.VITE_OPENROUTER_KEY)
@@ -29,28 +29,44 @@ export const LLMModelSelect = () => {
   }, [state.value])
 
 
-  const modelInCollection = collection.items.find(m => m.id === selectedModel)
+  // If not ready or model not found, don't pass `value`
+  const shouldRenderSelect = collection.items.length > 0
+
+  if (!shouldRenderSelect) {
+    return (
+      <Select.Root collection={collection} size='sm' width='100%'>
+        <Select.HiddenSelect />
+        <Select.Label>Favorite Models</Select.Label>
+        <Select.Control>
+          <Select.Trigger>
+            <Select.ValueText placeholder='Loading models…' />
+          </Select.Trigger>
+          <Select.IndicatorGroup>
+            <Spinner size='xs' borderWidth='1.5px' color='fg.muted' />
+          </Select.IndicatorGroup>
+        </Select.Control>
+      </Select.Root>
+    )
+  }
   
+
   return (
     <Select.Root
       collection={collection}
-      value={[modelInCollection?.id || '']}
-      onValueChange={(v) => {
-        const newModel = v?.items[0]
-        if (newModel.id !== selectedModel) setSelectedModel(newModel.id)
-      }}
-      size='sm'
-      width='260px'
+      key={collection.items.length}
+      value={favoriteModels}
+      onValueChange={(v) => setFavoriteModels(v.items.map((i: any) => i.id))}
+      multiple
+      size="sm"
+      width="100%"
     >
       <Select.HiddenSelect />
+      <Select.Label>Favorite Models</Select.Label>
       <Select.Control>
         <Select.Trigger>
-          <Select.ValueText placeholder='Select Model' />
+          <Select.ValueText placeholder={`${favoriteModels.length || 0} selected`} />
         </Select.Trigger>
         <Select.IndicatorGroup>
-          {state.loading && (
-            <Spinner size='xs' borderWidth='1.5px' color='fg.muted' />
-          )}
           <Select.Indicator />
         </Select.IndicatorGroup>
       </Select.Control>
