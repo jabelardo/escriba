@@ -22,7 +22,7 @@ import { useProjectStore } from '@/store/projectStore'
 import { useAuthStore } from '@/store/authStore'
 import { fetchProjectFileContent } from '@/lib/github/files'
 import { SettingsPanel } from "../Settings/SettingsPanel";
-import ErrorBoundary from "../ErrorBoundary ";
+import ErrorBoundary from "../ErrorBoundary";
 
 const AddCreateProjectDialog = () => {
   return (

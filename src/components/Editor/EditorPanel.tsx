@@ -9,7 +9,6 @@ import {
   BlockTypeSelect,
   BoldItalicUnderlineToggles,
   ButtonWithTooltip,
-  DialogButton,
   InsertTable,
   InsertThematicBreak,
   ListsToggle,
@@ -21,6 +20,7 @@ import {
   tablePlugin,
   thematicBreakPlugin,
   toolbarPlugin,
+  quotePlugin
 } from '@mdxeditor/editor'
 import { ArchiveIcon, MagicWandIcon, StopIcon } from "@radix-ui/react-icons"
 import { EditorTopBar } from './EditorTopBar'
@@ -30,9 +30,9 @@ import { Octokit } from '@octokit/rest'
 import { useAuthStore } from '@/store/authStore'
 
 import '@mdxeditor/editor/style.css'
-import "./my-editor.css";
-import "./custom-lexical-theme.css"
-import { customLexicalTheme } from "./CustomLexicalTheme";
+// import "./my-editor.css";
+// import "./custom-lexical-theme.css"
+// import { customLexicalTheme } from "./CustomLexicalTheme";
 
 export const EditorPanel = () => {
   const mdxEditorRef = useRef<MDXEditorMethods | null>(null)
@@ -156,10 +156,10 @@ export const EditorPanel = () => {
       />
       <Box flex='1' overflow='auto' p={2}>
         <MDXEditor
-          className="dark-theme dark-editor" 
+          //className="dark-theme dark-editor" 
           autoFocus
           contentEditableClassName="my-editor"
-          lexicalTheme={customLexicalTheme}
+          // lexicalTheme={customLexicalTheme}
           ref={mdxEditorRef}
           key={selectedFile?.filePath ?? 'editor'}
           markdown={markdownContent}
@@ -167,6 +167,7 @@ export const EditorPanel = () => {
           plugins={[
             headingsPlugin(),
             listsPlugin(),
+            quotePlugin(),
             tablePlugin(),
             thematicBreakPlugin(),
             markdownShortcutPlugin(), // you need the corresponding plugins for the markdown blocks listed before markdownShortcutPlugin() to enable support.
