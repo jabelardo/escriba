@@ -20,7 +20,7 @@ export const LLMModelSelect = () => {
 
   if (state.loading) {
     return (
-      <Select.Root disabled>
+      <Select.Root value={''} disabled>
         <Select.Trigger>
           <Spinner size="1" />
           <Text size="2" color="gray">Loading models...</Text>
@@ -31,7 +31,7 @@ export const LLMModelSelect = () => {
 
   if (state.error) {
     return (
-      <Select.Root disabled>
+      <Select.Root value={''} disabled>
         <Select.Trigger>
           <Text size="2" color="red">Error loading models</Text>
         </Select.Trigger>

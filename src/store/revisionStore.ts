@@ -1,0 +1,36 @@
+// src/store/revisionStore.ts
+import { create } from 'zustand'
+
+export interface Revision {
+  original: string
+  revised: string
+//   startOffset: number
+//   endOffset: number
+}
+
+interface RevisionState {
+  revisions: Record<string, Revision>
+  setRevision: (fileKey: string, revision: Revision) => void
+  getRevision: (fileKey: string) => Revision | null
+  clearRevision: (fileKey: string) => void
+  hasRevision: (fileKey: string) => boolean
+}
+
+export const useRevisionStore = create<RevisionState>((set, get) => ({
+  revisions: {},
+
+  setRevision: (fileKey, revision) =>
+    set(state => ({
+      revisions: { ...state.revisions, [fileKey]: revision }
+    })),
+
+  getRevision: (fileKey) => get().revisions[fileKey] ?? null,
+
+  clearRevision: (fileKey) =>
+    set(state => {
+      const { [fileKey]: _, ...rest } = state.revisions
+      return { revisions: rest }
+    }),
+
+  hasRevision: (fileKey) => fileKey in get().revisions
+}))

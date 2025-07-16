@@ -3,7 +3,7 @@
 import { Flex } from "@radix-ui/themes";
 import { useState, useRef, useEffect } from 'react'
 import { useProjectStore } from '@/store/projectStore'
-import { 
+import {
   MDXEditor,
   type MDXEditorMethods,
   BlockTypeSelect,
@@ -13,26 +13,29 @@ import {
   InsertThematicBreak,
   ListsToggle,
   Separator,
-  UndoRedo, 
+  UndoRedo,
   headingsPlugin,
   listsPlugin,
   markdownShortcutPlugin,
   tablePlugin,
   thematicBreakPlugin,
   toolbarPlugin,
-  quotePlugin
+  quotePlugin,
+  useCellValues,
+  currentSelection$,
+  rootEditor$,
 } from '@mdxeditor/editor'
-import { ArchiveIcon, MagicWandIcon, StopIcon } from "@radix-ui/react-icons"
+import { $getSelection, $isRangeSelection } from 'lexical'
+import { ArchiveIcon, MagicWandIcon, StopIcon, CheckIcon, Cross2Icon } from '@radix-ui/react-icons'
 import { EditorTopBar } from './EditorTopBar'
 import { fetchChatCompletion } from '@/lib/openrouter/chat'
 import { saveProjectFileContent } from '@/lib/github/files'
 import { Octokit } from '@octokit/rest'
 import { useAuthStore } from '@/store/authStore'
 import { useSettingsStore } from '@/store/settingsStore'
+import { useRevisionStore } from '@/store/revisionStore'
 
 import '@mdxeditor/editor/style.css'
-
-
 
 export const EditorPanel = () => {
   const mdxEditorRef = useRef<MDXEditorMethods | null>(null)
@@ -42,22 +45,27 @@ export const EditorPanel = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isFileChanged, setIsFileChanged] = useState(false);
   const token = useAuthStore(s => s.githubToken)
+
   const activeSystemPrompt = useSettingsStore(s => s.activeSystemPrompt)
   const activeContinuePrompt = useSettingsStore(s => s.activeContinuePrompt)
   const activeRevisePrompt = useSettingsStore(s => s.activeRevisePrompt)
-  
+
   const markdownContent = useProjectStore(s => {
     const c = s.selectedFile?.content
     return typeof c === 'string' ? c : ''
-  })  
+  })
 
   const originalMarkdownRef = useRef(markdownContent)
+
+  const selectedFileId = `${useProjectStore.getState().selectedProject?.repo}/${selectedFile?.filePath}`
+  const activeRevision = useRevisionStore(s => s.revisions[selectedFileId])
+
 
   useEffect(() => {
     originalMarkdownRef.current = markdownContent
     setIsFileChanged(false)
   }, [selectedFile?.filePath])
-  
+
   useEffect(() => {
     if (markdownContent && mdxEditorRef.current) {
       mdxEditorRef.current.setMarkdown(markdownContent)
@@ -66,47 +74,121 @@ export const EditorPanel = () => {
   }, [selectedFile?.filePath, markdownContent])
 
 
-  const handleGenerateText = async () => {
-    setIsGenerating(true)
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-    try {
-      const config = {
-        model: useProjectStore.getState().selectedProject?.model || 'openrouter/auto',
-        promptPrefix: activeContinuePrompt?.value || '', // TODO: use activeSystemPrompt and activeRevisePrompt as needed
-        apiKey: import.meta.env.VITE_OPENROUTER_KEY,
-        temperature: 1,
-        maxTokens: 512
-      }
-  
-      if (!config.apiKey) {
-        alert('OpenRouter API key is missing')
-        return
-      }
-      const prompt = `${config.promptPrefix}\n\n${markdownContent}`
+  const TextGenerator = () => {
+    const [rootEditor, currentSelection] = useCellValues(rootEditor$, currentSelection$)
 
-      const generatedText = await fetchChatCompletion({
-        apiKey: config.apiKey,
-        model: config.model,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: config.temperature,
-        maxTokens: config.maxTokens,
-        signal: controller.signal
-      })
+    const handleGenerateText = async () => {
+      setIsGenerating(true)
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
-      const newMarkdownContent = `${markdownContent}\n\n${generatedText}`
-      setMarkdownContent(newMarkdownContent)
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        console.log('Generation aborted by user')
-      } else {
-        console.error(err)
-        alert(`Failed to generate text: ${err instanceof Error ? err.message : String(err)}`)
+      try {
+        const system = activeSystemPrompt?.value || ''
+        const continuePrompt = activeContinuePrompt?.value || ''
+        const revisePrompt = activeRevisePrompt?.value || ''
+        const model = useProjectStore.getState().selectedProject?.model || 'openrouter/auto'
+        const apiKey = import.meta.env.VITE_OPENROUTER_KEY
+        const temperature = 1
+        const maxTokens = 512
+
+        if (!apiKey) {
+          alert('OpenRouter API key is missing')
+          return
+        }
+
+        const isRevision = currentSelection && rootEditor && !currentSelection.isCollapsed()
+
+        if (isRevision) {
+          const { selectedText, before } = rootEditor.read(() => {
+            const selection = $getSelection()
+            if ($isRangeSelection(selection)) {
+              const selectedText = selection.getTextContent()
+            
+              // Get the text position using the editor's text content
+              const root = rootEditor.getRootElement()
+              if (root) {
+                const allText = root.innerText || root.textContent || ''
+                const selectionIndex = allText.indexOf(selectedText)
+                
+                if (selectionIndex !== -1) {
+                  return { selectedText, before: allText.substring(0, selectionIndex) }
+                }
+              }
+              
+              // Fallback if somehow the above doesn't work
+              return { selectedText, before: '' }
+          } else {
+            return { selectedText: '', before: '' }
+            }
+          })
+
+          console.log( {   before, selectedText })
+
+          const promptText =
+            `${system}\n${revisePrompt}\n\n[${before}]\n\n[passage]${selectedText}[/passage]`
+          console.log({'revision promptText': promptText})
+          // const generatedText = await fetchChatCompletion({
+          //   apiKey,
+          //   model,
+          //   messages: [{ role: 'user', content: promptText }],
+          //   temperature: temperature,
+          //   maxTokens: maxTokens,
+          //   signal: controller.signal
+          // })
+          
+          const generatedText = ' ... revision generatedText ... '
+          const original = markdownContent
+          const revised = generatedText.trim()
+
+          useRevisionStore.getState().setRevision(selectedFileId, {
+            original: original,
+            revised: revised,
+          })
+
+          const newMarkdown = markdownContent.replace(selectedText, `🟡 ${revised} 🟡`)
+          
+          console.log({'revision newMarkdown': newMarkdown})
+          setMarkdownContent(newMarkdown)
+
+        } else {
+          const promptText = `${system}\n${continuePrompt}\n\n${markdownContent}`
+          console.log({'continue promptText': promptText})
+          const generatedText = ' .. continue generatedText ...'
+          // const generatedText = await fetchChatCompletion({
+          //   apiKey,
+          //   model,
+          //   messages: [{ role: 'user', content: promptText }],
+          //   temperature: temperature,
+          //   maxTokens: maxTokens,
+          //   signal: controller.signal
+          // })
+
+          const newMarkdown = `${markdownContent}\n\n${generatedText}`
+          console.log({'revision newMarkdown': newMarkdown})
+          setMarkdownContent(newMarkdown)
+        }
+
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          console.log('Generation aborted by user')
+        } else {
+          console.error(err)
+          alert(`Failed to generate text: ${err instanceof Error ? err.message : String(err)}`)
+        }
+      } finally {
+        setIsGenerating(false)
+        abortControllerRef.current = null
       }
-    } finally {
-      setIsGenerating(false)
-      abortControllerRef.current = null
     }
+
+    return (
+      <ButtonWithTooltip
+        children={<MagicWandIcon />}
+        onClick={handleGenerateText}
+        disabled={isGenerating}
+        title={isGenerating ? "Generating..." : "Generate Text"}
+      />
+    )
   }
 
   const handleStopGenerateText = () => {
@@ -116,7 +198,7 @@ export const EditorPanel = () => {
   }
 
   const handleSaveFile = async () => {
-    console.log('Saving file:', {selectedFile,  token})
+    console.log('Saving file:', { selectedFile, token })
     if (!selectedFile || !token) return
 
     const octokit = new Octokit({ auth: token })
@@ -139,7 +221,7 @@ export const EditorPanel = () => {
       console.error(err)
       alert('Failed to save file')
     }
-}
+  }
 
   const handleEditorChange = (markdown: string, initialMarkdownNormalize: boolean) => {
     setMarkdownContent(markdown)
@@ -152,58 +234,81 @@ export const EditorPanel = () => {
   }
 
   return (
-      <Flex direction='column' height='100%' overflow='hidden' width='100%'>
-        <EditorTopBar
-          filePath={selectedFile?.filePath}
-        />
-          <MDXEditor
-            autoFocus
-            ref={mdxEditorRef}
-            key={selectedFile?.filePath ?? 'editor'}
-            markdown={markdownContent}
-            onChange={handleEditorChange}
-            plugins={[
-              headingsPlugin(),
-              listsPlugin(),
-              quotePlugin(),
-              tablePlugin(),
-              thematicBreakPlugin(),
-              markdownShortcutPlugin(), // you need the corresponding plugins for the markdown blocks listed before markdownShortcutPlugin() to enable support.
-              toolbarPlugin({
-                toolbarContents: () => (
+    <Flex direction='column' height='100%' overflow='hidden' width='100%'>
+      <EditorTopBar
+        filePath={selectedFile?.filePath}
+      />
+      <MDXEditor
+        autoFocus
+        ref={mdxEditorRef}
+        key={selectedFile?.filePath ?? 'editor'}
+        markdown={markdownContent}
+        onChange={handleEditorChange}
+        plugins={[
+          headingsPlugin(),
+          listsPlugin(),
+          quotePlugin(),
+          tablePlugin(),
+          thematicBreakPlugin(),
+          markdownShortcutPlugin(), // you need the corresponding plugins for the markdown blocks listed before markdownShortcutPlugin() to enable support.
+          toolbarPlugin({
+            toolbarContents: () => (
+              <>
+                <UndoRedo />
+                <Separator />
+                <BoldItalicUnderlineToggles />
+                <ListsToggle />
+                <BlockTypeSelect />
+                <InsertTable />
+                <InsertThematicBreak />
+                <Separator />
+                <TextGenerator />
+                <ButtonWithTooltip
+                  children={<StopIcon />}
+                  onClick={handleStopGenerateText}
+                  disabled={!isGenerating}
+                  title={"Stop Generating"}
+                />
+                <Separator />
+                <ButtonWithTooltip
+                  children={<ArchiveIcon />}
+                  onClick={handleSaveFile}
+                  disabled={!isFileChanged}
+                  title={"Save File"}
+                />
+
+                {activeRevision && (
                   <>
-                    <UndoRedo />
                     <Separator />
-                    <BoldItalicUnderlineToggles />
-                    <ListsToggle />
-                    <BlockTypeSelect />
-                    <InsertTable />
-                    <InsertThematicBreak />
-                    <Separator />
-                    <ButtonWithTooltip 
-                      children={<MagicWandIcon />}
-                      onClick={handleGenerateText}
-                      disabled={isGenerating}
-                      title={isGenerating ? "Generating..." : "Generate Text"}
-                    />
-                    <ButtonWithTooltip 
-                      children={<StopIcon />}
-                      onClick={handleStopGenerateText}
-                      disabled={!isGenerating}
-                      title={"Stop Generating"}
-                    />
-                    <Separator />
-                    <ButtonWithTooltip 
-                      children={<ArchiveIcon />}
-                      onClick={handleSaveFile}
-                      disabled={!isFileChanged}
-                      title={"Save File"}
-                    />
+                    <ButtonWithTooltip
+                      title="Approve Revision"
+                      onClick={() => {
+                        const markdown = useProjectStore.getState().selectedFile?.content
+                        if (!markdown || !activeRevision) return
+                        const newContent = markdown.replace('[passage]', '').replace('[/passage]', '')
+                        useProjectStore.getState().setSelectedFileContent(newContent)
+                        useRevisionStore.getState().clearRevision(selectedFileId)
+                      }}
+                    >
+                      <CheckIcon />
+                    </ButtonWithTooltip>
+                    <ButtonWithTooltip
+                      title="Reject Revision"
+                      onClick={() => {
+                        const original = activeRevision.original
+                        useProjectStore.getState().setSelectedFileContent(original)
+                        useRevisionStore.getState().clearRevision(selectedFileId)
+                      }}
+                    >
+                      <Cross2Icon />
+                    </ButtonWithTooltip>
                   </>
-                )
-              }),
-            ]} 
-          />
-      </Flex>
+                )}
+              </>
+            )
+          }),
+        ]}
+      />
+    </Flex>
   )
 }
