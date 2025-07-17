@@ -83,9 +83,9 @@ export const EditorPanel = () => {
       abortControllerRef.current = controller;
 
       try {
-        const system = activeSystemPrompt?.value || ''
+        const systemPromp = activeSystemPrompt?.value || ''
         const continuePrompt = activeContinuePrompt?.value || ''
-        const revisePrompt = activeRevisePrompt?.value || ''
+        const revisePromptTemplate = activeRevisePrompt?.value || ''
         const model = useProjectStore.getState().selectedProject?.model || 'openrouter/auto'
         const apiKey = import.meta.env.VITE_OPENROUTER_KEY
         const temperature = 1
@@ -99,44 +99,46 @@ export const EditorPanel = () => {
         const isRevision = currentSelection && rootEditor && !currentSelection.isCollapsed()
 
         if (isRevision) {
-          const { selectedText, before } = rootEditor.read(() => {
+          const { selectedText, textBeforeSelection } = rootEditor.read(() => {
             const selection = $getSelection()
             if ($isRangeSelection(selection)) {
               const selectedText = selection.getTextContent()
-            
-              // Get the text position using the editor's text content
-              const root = rootEditor.getRootElement()
-              if (root) {
-                const allText = root.innerText || root.textContent || ''
-                const selectionIndex = allText.indexOf(selectedText)
-                
-                if (selectionIndex !== -1) {
-                  return { selectedText, before: allText.substring(0, selectionIndex) }
-                }
-              }
-              
-              // Fallback if somehow the above doesn't work
-              return { selectedText, before: '' }
-          } else {
-            return { selectedText: '', before: '' }
+
+              // Get the markdown content from the editor
+              const currentMarkdown = mdxEditorRef.current?.getMarkdown() || markdownContent
+
+              // Find the position of selected text in the markdown
+              const selectedIndex = currentMarkdown.indexOf(selectedText)
+              const textBeforeSelection = selectedIndex !== -1 ? currentMarkdown.substring(0, selectedIndex) : ''
+
+              return { selectedText, textBeforeSelection }
             }
+            return { selectedText: '', textBeforeSelection: '' }
           })
 
-          console.log( {   before, selectedText })
+          // Only proceed if we found the selected text
+          if (!selectedText) {
+            alert('Could not identify selected text for revision')
+            return
+          }
 
-          const promptText =
-            `${system}\n${revisePrompt}\n\n[${before}]\n\n[passage]${selectedText}[/passage]`
-          console.log({'revision promptText': promptText})
-          // const generatedText = await fetchChatCompletion({
-          //   apiKey,
-          //   model,
-          //   messages: [{ role: 'user', content: promptText }],
-          //   temperature: temperature,
-          //   maxTokens: maxTokens,
-          //   signal: controller.signal
-          // })
-          
-          const generatedText = ' ... revision generatedText ... '
+          console.log({ textBeforeSelection, selectedText })
+
+          const context = textBeforeSelection
+          const revisePrompt = revisePromptTemplate?.replace('{{selectedText}}', selectedText)?.replace('{{context}}', context)
+          const promptText = `${systemPromp}\n${revisePrompt}`
+
+
+          console.log({ 'revision promptText': promptText })
+          const generatedText = await fetchChatCompletion({
+            apiKey,
+            model,
+            messages: [{ role: 'user', content: promptText }],
+            temperature: temperature,
+            maxTokens: maxTokens,
+            signal: controller.signal
+          })
+
           const original = markdownContent
           const revised = generatedText.trim()
 
@@ -145,26 +147,26 @@ export const EditorPanel = () => {
             revised: revised,
           })
 
-          const newMarkdown = markdownContent.replace(selectedText, `🟡 ${revised} 🟡`)
-          
-          console.log({'revision newMarkdown': newMarkdown})
+          // XXXX: BUG this result in newMarkdown been the same as markdownContent most of the time.
+          const newMarkdown = markdownContent.replace(selectedText, `[REVISION]${revised}[/REVISION]`)
+
+          console.log({ 'revision newMarkdown': newMarkdown })
           setMarkdownContent(newMarkdown)
 
         } else {
-          const promptText = `${system}\n${continuePrompt}\n\n${markdownContent}`
-          console.log({'continue promptText': promptText})
-          const generatedText = ' .. continue generatedText ...'
-          // const generatedText = await fetchChatCompletion({
-          //   apiKey,
-          //   model,
-          //   messages: [{ role: 'user', content: promptText }],
-          //   temperature: temperature,
-          //   maxTokens: maxTokens,
-          //   signal: controller.signal
-          // })
+          const promptText = `${systemPromp}\n${continuePrompt}\n\n${markdownContent}`
+          console.log({ 'continue promptText': promptText })
+          const generatedText = await fetchChatCompletion({
+            apiKey,
+            model,
+            messages: [{ role: 'user', content: promptText }],
+            temperature: temperature,
+            maxTokens: maxTokens,
+            signal: controller.signal
+          })
 
           const newMarkdown = `${markdownContent}\n\n${generatedText}`
-          console.log({'revision newMarkdown': newMarkdown})
+          console.log({ 'revision newMarkdown': newMarkdown })
           setMarkdownContent(newMarkdown)
         }
 
@@ -285,7 +287,7 @@ export const EditorPanel = () => {
                       onClick={() => {
                         const markdown = useProjectStore.getState().selectedFile?.content
                         if (!markdown || !activeRevision) return
-                        const newContent = markdown.replace('[passage]', '').replace('[/passage]', '')
+                        const newContent = markdown.replace('[REVISION]', '').replace('[/REVISION]', '')
                         useProjectStore.getState().setSelectedFileContent(newContent)
                         useRevisionStore.getState().clearRevision(selectedFileId)
                       }}

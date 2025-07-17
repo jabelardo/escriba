@@ -1,11 +1,15 @@
 // src/store/revisionStore.ts
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import type { EditorState } from 'lexical'
 
 export interface Revision {
   original: string
   revised: string
 //   startOffset: number
 //   endOffset: number
+    // beforeState: EditorState,
+    // afterState: EditorState,
 }
 
 interface RevisionState {
@@ -16,21 +20,25 @@ interface RevisionState {
   hasRevision: (fileKey: string) => boolean
 }
 
-export const useRevisionStore = create<RevisionState>((set, get) => ({
-  revisions: {},
+export const useRevisionStore = create<RevisionState>()(
+  persist((set, get) => ({
+    revisions: {},
 
-  setRevision: (fileKey, revision) =>
-    set(state => ({
-      revisions: { ...state.revisions, [fileKey]: revision }
+    setRevision: (fileKey, revision) =>
+        set(state => ({
+        revisions: { ...state.revisions, [fileKey]: revision }
     })),
 
-  getRevision: (fileKey) => get().revisions[fileKey] ?? null,
+    getRevision: (fileKey) => get().revisions[fileKey] ?? null,
 
-  clearRevision: (fileKey) =>
-    set(state => {
-      const { [fileKey]: _, ...rest } = state.revisions
-      return { revisions: rest }
+    clearRevision: (fileKey) =>
+        set(state => {
+        const { [fileKey]: _, ...rest } = state.revisions
+        return { revisions: rest }
     }),
 
-  hasRevision: (fileKey) => fileKey in get().revisions
-}))
+    hasRevision: (fileKey) => fileKey in get().revisions
+  }), {
+    name: 'escriba-revision',
+  })
+)

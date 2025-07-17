@@ -7,18 +7,11 @@ export interface FileTreeNode {
   children?: FileTreeNode[]
 }
 
-export type FileFilter = (fileName: string) => boolean
-
-export async function fetchProjectFileTree(
-    octokit: Octokit, 
-    owner: string, 
-    repo: string, 
-    shouldIncludeFile: FileFilter = (name) => true,
-    path = ''): Promise<FileTreeNode[]> {
+export async function fetchProjectFileTree(octokit: Octokit, owner: string, repo: string, path = ''): Promise<FileTreeNode[]> {
   const response = await octokit.rest.repos.getContent({
     owner,
     repo,
-    path
+    path,
   })
 
   const entries = Array.isArray(response.data) ? response.data : [response.data]
@@ -26,24 +19,22 @@ export async function fetchProjectFileTree(
   const result: FileTreeNode[] = await Promise.all(
     entries.map(async (item) => {
       if (item.type === 'dir') {
-        const children = await fetchProjectFileTree(octokit, owner, repo, shouldIncludeFile, item.path)
+        const children = await fetchProjectFileTree(octokit, owner, repo, item.path)
         return {
           id: item.path,
           name: item.name,
           type: 'folder',
           children,
         }
-      } else if (shouldIncludeFile(item.name)) {
+      } else {
         return {
           id: item.path,
           name: item.name,
           type: 'file',
         }
-      } else {
-        return null as any
       }
     })
   )
 
-  return result.filter(Boolean) as FileTreeNode[]
+  return result
 }

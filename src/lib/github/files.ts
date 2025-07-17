@@ -30,6 +30,7 @@ export async function fetchProjectFileContent(
     }
   }
 
+
   export async function saveProjectFileContent({
     octokit,
     owner,
@@ -49,8 +50,7 @@ export async function fetchProjectFileContent(
     sha: string
     branch?: string
   }) {
-    const contentEncoded = btoa(content)
-    console.log('Saving file:', {content, contentEncoded})
+    const contentEncoded = bytesToBase64(new TextEncoder().encode(content))
     const result = await octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
@@ -67,3 +67,9 @@ export async function fetchProjectFileContent(
     return result
   }
   
+  function bytesToBase64(bytes: Uint8Array) {
+    const binString = Array.from(bytes, (byte) =>
+      String.fromCodePoint(byte),
+    ).join("");
+    return btoa(binString);
+  }
