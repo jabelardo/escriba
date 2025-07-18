@@ -1,15 +1,10 @@
-'use client'
+"use client";
 
-import {
-  Text,
-  Flex,
-  TextField,
-} from '@radix-ui/themes'
-import { useSettingsStore } from '@/store/settingsStore'
-import { PromptSelector } from './PromptSelector'
-import { PromptManagerDialog } from './PromptManagerDialog'
-import { FavoritesModelSelect } from './FavoritesModelSelect'
-
+import { Text, Flex, TextField } from "@radix-ui/themes";
+import { useSettingsStore } from "@/store/settingsStore";
+import { PromptSelector } from "./PromptSelector";
+import { PromptManagerDialog } from "./PromptManagerDialog";
+import { FavoritesModelSelect } from "./FavoritesModelSelect";
 
 export const SettingsPanel = () => {
   const {
@@ -29,77 +24,86 @@ export const SettingsPanel = () => {
     updateContinuePrompts,
     updateSystemPrompts,
     updateRevisePrompts,
-  } = useSettingsStore()
+  } = useSettingsStore();
 
   return (
-    <Flex direction='column' gap={"3"} p={"1em 0"} maxWidth='600px'>
-
+    <Flex direction="column" gap={"3"} p={"1em 0"} maxWidth="600px">
       <FavoritesModelSelect />
-   
+
       <label>
-        <Text as="div" size="2" mb="1" weight="bold">Current System Promp</Text>
+        <Text as="div" size="2" mb="1" weight="bold">
+          Current System Promp
+        </Text>
         <Flex direction="row" gap="3" align={"center"} width={"100%"}>
           <PromptSelector
-            label='System Prompt'
+            label="System Prompt"
             items={systemPrompts}
             selectedPrompt={activeSystemPrompt}
             onChange={setActiveSystemPrompt}
           />
-          <PromptManagerDialog 
-            category='system' 
+          <PromptManagerDialog
+            category="system"
             prompts={systemPrompts}
             updatePrompts={updateSystemPrompts}
           />
         </Flex>
       </label>
       <label>
-        <Text as="div" size="2" mb="1" weight="bold">Current Continue Promp</Text>
+        <Text as="div" size="2" mb="1" weight="bold">
+          Current Continue Promp
+        </Text>
         <Flex direction="row" gap="3" align={"center"} width={"100%"}>
           <PromptSelector
-            label='Continue Prompt'
+            label="Continue Prompt"
             items={continuePrompts}
             selectedPrompt={activeContinuePrompt}
             onChange={setActiveContinuePrompt}
           />
-          <PromptManagerDialog 
-            category='continue' 
+          <PromptManagerDialog
+            category="continue"
             prompts={continuePrompts}
             updatePrompts={updateContinuePrompts}
           />
         </Flex>
       </label>
       <label>
-        <Text as="div" size="2" mb="1" weight="bold">Current Revise Promp</Text>
+        <Text as="div" size="2" mb="1" weight="bold">
+          Current Revise Promp
+        </Text>
         <Flex direction="row" gap="3" align={"center"} width={"100%"}>
           <PromptSelector
-            label='Revise Prompt'
+            label="Revise Prompt"
             items={revisePrompts}
             selectedPrompt={activeRevisePrompt}
             onChange={setActiveRevisePrompt}
           />
-          <PromptManagerDialog 
-            category='revise' 
+          <PromptManagerDialog
+            category="revise"
             prompts={revisePrompts}
             updatePrompts={updateRevisePrompts}
           />
         </Flex>
       </label>
       <label>
-        <Text as="div" size="2" mb="1" weight="bold">OpenRouter API Key</Text>
+        <Text as="div" size="2" mb="1" weight="bold">
+          OpenRouter API Key
+        </Text>
         <TextField.Root
-          type='password'
+          type="password"
           value={openrouterKey}
-          onChange={e => setOpenrouterKey(e.target.value)}
+          onChange={(e) => setOpenrouterKey(e.target.value)}
         />
       </label>
       <label>
-        <Text as="div" size="2" mb="1" weight="bold">GitHub Token</Text>
+        <Text as="div" size="2" mb="1" weight="bold">
+          GitHub Token
+        </Text>
         <TextField.Root
-          type='password'
+          type="password"
           value={githubToken}
-          onChange={e => setGithubToken(e.target.value)}
+          onChange={(e) => setGithubToken(e.target.value)}
         />
       </label>
     </Flex>
-  )
-}
+  );
+};

@@ -1,11 +1,20 @@
-import React, { useState, useCallback } from 'react';
-import { ChevronRight, ChevronDown, Folder, FolderOpen, File, FileText, FileCode, FileImage } from 'lucide-react';
+import React, { useState, useCallback } from "react";
+import {
+  ChevronRight,
+  ChevronDown,
+  Folder,
+  FolderOpen,
+  File,
+  FileText,
+  FileCode,
+  FileImage,
+} from "lucide-react";
 
 // Types
 export interface FileNode {
   id: string;
   name: string;
-  type: 'file' | 'folder';
+  type: "file" | "folder";
   children?: FileNode[];
   extension?: string;
   size?: number;
@@ -20,85 +29,88 @@ interface FileHierarchyState {
 // Sample data - replace with your actual file structure
 const sampleFileStructure: FileNode[] = [
   {
-    id: '1',
-    name: 'src',
-    type: 'folder',
+    id: "1",
+    name: "src",
+    type: "folder",
     children: [
       {
-        id: '2',
-        name: 'components',
-        type: 'folder',
+        id: "2",
+        name: "components",
+        type: "folder",
         children: [
-          { id: '3', name: 'Button.tsx', type: 'file', extension: 'tsx' },
-          { id: '4', name: 'Input.tsx', type: 'file', extension: 'tsx' },
-          { id: '5', name: 'Modal.tsx', type: 'file', extension: 'tsx' },
-        ]
+          { id: "3", name: "Button.tsx", type: "file", extension: "tsx" },
+          { id: "4", name: "Input.tsx", type: "file", extension: "tsx" },
+          { id: "5", name: "Modal.tsx", type: "file", extension: "tsx" },
+        ],
       },
       {
-        id: '6',
-        name: 'utils',
-        type: 'folder',
+        id: "6",
+        name: "utils",
+        type: "folder",
         children: [
-          { id: '7', name: 'helpers.ts', type: 'file', extension: 'ts' },
-          { id: '8', name: 'constants.ts', type: 'file', extension: 'ts' },
-        ]
+          { id: "7", name: "helpers.ts", type: "file", extension: "ts" },
+          { id: "8", name: "constants.ts", type: "file", extension: "ts" },
+        ],
       },
-      { id: '9', name: 'App.tsx', type: 'file', extension: 'tsx' },
-      { id: '10', name: 'main.tsx', type: 'file', extension: 'tsx' },
-    ]
+      { id: "9", name: "App.tsx", type: "file", extension: "tsx" },
+      { id: "10", name: "main.tsx", type: "file", extension: "tsx" },
+    ],
   },
   {
-    id: '11',
-    name: 'public',
-    type: 'folder',
+    id: "11",
+    name: "public",
+    type: "folder",
     children: [
-      { id: '12', name: 'index.html', type: 'file', extension: 'html' },
-      { id: '13', name: 'favicon.ico', type: 'file', extension: 'ico' },
+      { id: "12", name: "index.html", type: "file", extension: "html" },
+      { id: "13", name: "favicon.ico", type: "file", extension: "ico" },
       {
-        id: '14',
-        name: 'assets',
-        type: 'folder',
+        id: "14",
+        name: "assets",
+        type: "folder",
         children: [
-          { id: '15', name: 'logo.png', type: 'file', extension: 'png' },
-          { id: '16', name: 'background.jpg', type: 'file', extension: 'jpg' },
-        ]
-      }
-    ]
+          { id: "15", name: "logo.png", type: "file", extension: "png" },
+          { id: "16", name: "background.jpg", type: "file", extension: "jpg" },
+        ],
+      },
+    ],
   },
-  { id: '17', name: 'package.json', type: 'file', extension: 'json' },
-  { id: '18', name: 'tsconfig.json', type: 'file', extension: 'json' },
-  { id: '19', name: 'vite.config.ts', type: 'file', extension: 'ts' },
-  { id: '20', name: 'README.md', type: 'file', extension: 'md' },
+  { id: "17", name: "package.json", type: "file", extension: "json" },
+  { id: "18", name: "tsconfig.json", type: "file", extension: "json" },
+  { id: "19", name: "vite.config.ts", type: "file", extension: "ts" },
+  { id: "20", name: "README.md", type: "file", extension: "md" },
 ];
 
 // File icon component
-const FileIcon: React.FC<{ extension?: string; className?: string }> = ({ extension, className = "w-4 h-4" }) => {
+const FileIcon: React.FC<{ extension?: string; className?: string }> = ({
+  extension,
+  className = "w-4 h-4",
+}) => {
   const getIcon = () => {
     if (!extension) return <File className={className} />;
-    
+
     switch (extension.toLowerCase()) {
-      case 'tsx':
-      case 'ts':
-      case 'js':
-      case 'jsx':
+      case "tsx":
+      case "ts":
+      case "js":
+      case "jsx":
         return <FileCode className={`${className} text-blue-500`} />;
-      case 'json':
+      case "json":
         return <FileText className={`${className} text-yellow-500`} />;
-      case 'html':
+      case "html":
         return <FileCode className={`${className} text-orange-500`} />;
-      case 'md':
+      case "md":
         return <FileText className={`${className} text-gray-600`} />;
-      case 'png':
-      case 'jpg':
-      case 'jpeg':
-      case 'gif':
-      case 'svg':
+      case "png":
+      case "jpg":
+      case "jpeg":
+      case "gif":
+      case "svg":
         return <FileImage className={`${className} text-purple-500`} />;
       default:
         return <File className={className} />;
     }
   };
-  
+
   return getIcon();
 };
 
@@ -113,7 +125,7 @@ const FileNodeComponent: React.FC<{
 }> = ({ node, level, isExpanded, isSelected, onToggle, onSelect }) => {
   const handleClick = useCallback(() => {
     onSelect(node.id);
-    if (node.type === 'folder') {
+    if (node.type === "folder") {
       onToggle(node.id);
     }
   }, [node.id, node.type, onSelect, onToggle]);
@@ -124,12 +136,12 @@ const FileNodeComponent: React.FC<{
     <div>
       <div
         className={`flex items-center py-1 px-2 cursor-pointer hover:bg-gray-100 transition-colors ${
-          isSelected ? 'bg-blue-100 border-l-2 border-blue-500' : ''
+          isSelected ? "bg-blue-100 border-l-2 border-blue-500" : ""
         }`}
         style={{ paddingLeft }}
         onClick={handleClick}
       >
-        {node.type === 'folder' && (
+        {node.type === "folder" && (
           <div className="mr-1">
             {isExpanded ? (
               <ChevronDown className="w-4 h-4 text-gray-500" />
@@ -138,9 +150,9 @@ const FileNodeComponent: React.FC<{
             )}
           </div>
         )}
-        
+
         <div className="mr-2">
-          {node.type === 'folder' ? (
+          {node.type === "folder" ? (
             isExpanded ? (
               <FolderOpen className="w-4 h-4 text-blue-600" />
             ) : (
@@ -150,13 +162,15 @@ const FileNodeComponent: React.FC<{
             <FileIcon extension={node.extension} />
           )}
         </div>
-        
-        <span className={`text-sm ${isSelected ? 'font-medium text-blue-700' : 'text-gray-700'}`}>
+
+        <span
+          className={`text-sm ${isSelected ? "font-medium text-blue-700" : "text-gray-700"}`}
+        >
           {node.name}
         </span>
       </div>
-      
-      {node.type === 'folder' && isExpanded && node.children && (
+
+      {node.type === "folder" && isExpanded && node.children && (
         <div>
           {node.children.map((child) => (
             <FileNodeComponent
@@ -180,18 +194,18 @@ const FileHierarchyNavigator: React.FC<{
   fileStructure?: FileNode[];
   onFileSelect?: (node: FileNode) => void;
   className?: string;
-}> = ({ 
-  fileStructure = sampleFileStructure, 
+}> = ({
+  fileStructure = sampleFileStructure,
   onFileSelect,
-  className = ""
+  className = "",
 }) => {
   const [state, setState] = useState<FileHierarchyState>({
-    expandedNodes: new Set(['1']), // Start with root folder expanded
+    expandedNodes: new Set(["1"]), // Start with root folder expanded
     selectedNode: null,
   });
 
   const toggleNode = useCallback((id: string) => {
-    setState(prev => {
+    setState((prev) => {
       const newExpanded = new Set(prev.expandedNodes);
       if (newExpanded.has(id)) {
         newExpanded.delete(id);
@@ -202,26 +216,29 @@ const FileHierarchyNavigator: React.FC<{
     });
   }, []);
 
-  const selectNode = useCallback((id: string) => {
-    setState(prev => ({ ...prev, selectedNode: id }));
-    
-    // Find the selected node and call onFileSelect if provided
-    const findNode = (nodes: FileNode[]): FileNode | null => {
-      for (const node of nodes) {
-        if (node.id === id) return node;
-        if (node.children) {
-          const found = findNode(node.children);
-          if (found) return found;
+  const selectNode = useCallback(
+    (id: string) => {
+      setState((prev) => ({ ...prev, selectedNode: id }));
+
+      // Find the selected node and call onFileSelect if provided
+      const findNode = (nodes: FileNode[]): FileNode | null => {
+        for (const node of nodes) {
+          if (node.id === id) return node;
+          if (node.children) {
+            const found = findNode(node.children);
+            if (found) return found;
+          }
         }
+        return null;
+      };
+
+      const selectedNode = findNode(fileStructure);
+      if (selectedNode && onFileSelect) {
+        onFileSelect(selectedNode);
       }
-      return null;
-    };
-    
-    const selectedNode = findNode(fileStructure);
-    if (selectedNode && onFileSelect) {
-      onFileSelect(selectedNode);
-    }
-  }, [fileStructure, onFileSelect]);
+    },
+    [fileStructure, onFileSelect],
+  );
 
   const renderNodes = (nodes: FileNode[], level: number = 0) => {
     return nodes.map((node) => (

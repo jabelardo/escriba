@@ -1,33 +1,28 @@
-import { Flex, Text } from '@radix-ui/themes'
-import { useProjectStore } from '@/store/projectStore'
-import { LLMModelSelect } from './LLMModelSelect'
-import { ThemeToggleButton } from '../ui/ThemeToggleButton'
+import { Flex, Text } from "@radix-ui/themes";
+import { useProjectStore } from "@/store/projectStore";
+import { LLMModelSelect } from "./LLMModelSelect";
+import { ThemeToggleButton } from "../ui/ThemeToggleButton";
 
 interface EditorTopBarProps {
-  filePath?: string
+  filePath?: string;
 }
 
-export const EditorTopBar = ({ filePath  }: EditorTopBarProps) => {
-  const project = useProjectStore(s => s.selectedProject)
-  const branch = useProjectStore(s => s.selectedBranch)
-  
-  const fileName = filePath?.split('/').pop() || 'Untitled.md'
+export const EditorTopBar = ({ filePath }: EditorTopBarProps) => {
+  const project = useProjectStore((s) => s.selectedProject);
+  const branch = useProjectStore((s) => s.selectedBranch);
+
+  const fileName = filePath?.split("/").pop() || "Untitled.md";
 
   return (
-    <Flex
-      align='center'
-      justify="between"
-      p="3"
-      gap="4"
-    >
+    <Flex align="center" justify="between" p="3" gap="4">
       {/* Left Group */}
-      <Flex gap="4" align='center' wrap='wrap'>
+      <Flex gap="4" align="center" wrap="wrap">
         <Text size="2">
-          📁 {project ? `${project.owner}/${project.repo}` : 'No project'}
+          📁 {project ? `${project.owner}/${project.repo}` : "No project"}
         </Text>
-        <Text size="2">🌿 {branch || 'main'}</Text>
+        <Text size="2">🌿 {branch || "main"}</Text>
         <Text size="2">📝 {fileName}</Text>
-        <Flex align='center' gap="2">
+        <Flex align="center" gap="2">
           <Text size="2">🤖</Text>
           <LLMModelSelect />
         </Flex>
@@ -36,5 +31,5 @@ export const EditorTopBar = ({ filePath  }: EditorTopBarProps) => {
       {/* Right-aligned */}
       <ThemeToggleButton />
     </Flex>
-  )
-}
+  );
+};

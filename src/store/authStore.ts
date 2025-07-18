@@ -1,14 +1,14 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface AuthStore {
-  githubToken: string | null
-  setGithubToken: (token: string) => void
-  clearGithubToken: () => void
+  githubToken: string | null;
+  setGithubToken: (token: string) => void;
+  clearGithubToken: () => void;
 
-  openrouterKey: string | null
-  setOpenrouterKey: (key: string) => void
-  clearOpenrouterKey: () => void
+  openrouterKey: string | null;
+  setOpenrouterKey: (key: string) => void;
+  clearOpenrouterKey: () => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -23,7 +23,7 @@ export const useAuthStore = create<AuthStore>()(
       clearOpenrouterKey: () => set({ openrouterKey: null }),
     }),
     {
-      name: 'auth-storage', // localStorage key
-    }
-  )
-)
+      name: "auth-storage", // localStorage key
+    },
+  ),
+);
