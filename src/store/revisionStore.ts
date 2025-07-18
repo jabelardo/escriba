@@ -4,13 +4,7 @@ import { persist } from "zustand/middleware";
 import type { SerializedEditorState } from "lexical";
 
 export interface Revision {
-  original: string;
-  revised: string;
   editorState: SerializedEditorState;
-  //   startOffset: number
-  //   endOffset: number
-  // beforeState: EditorState,
-  // afterState: EditorState,
 }
 
 interface RevisionState {

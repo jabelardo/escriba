@@ -138,8 +138,6 @@ export const EditorPanel = () => {
               });
 
               useRevisionStore.getState().setRevision(selectedFileId, {
-                original: selectedText,
-                revised: revised,
                 editorState: activeEditor.getEditorState().toJSON(),
               });
 
@@ -153,7 +151,6 @@ export const EditorPanel = () => {
           });
         } else {
           const promptText = `${systemPromp}\n${continuePrompt}\n\n${markdownContent}`;
-          console.log({ "continue promptText": promptText });
           const generatedText = await fetchChatCompletion({
             apiKey,
             model,
@@ -164,7 +161,6 @@ export const EditorPanel = () => {
           });
 
           const newMarkdown = `${markdownContent}\n\n${generatedText}`;
-          console.log({ "revision newMarkdown": newMarkdown });
           setMarkdownContent(newMarkdown);
         }
       } catch (err) {
@@ -237,6 +233,25 @@ export const EditorPanel = () => {
     }
   };
 
+  const handleRejectRevision = () => {
+    if (!activeRevision) return;
+    const [activeEditor] = useCellValues(activeEditor$);
+    activeEditor?.update(() => {
+      const original = activeEditor.parseEditorState(
+        activeRevision.editorState,
+      );
+      activeEditor.setEditorState(original);
+    });
+  };
+
+  const hnadleApproveRevision = () => {
+    const markdown = useProjectStore.getState().selectedFile?.content;
+    if (!markdown || !activeRevision) return;
+    const newContent = markdown.replace("[->", "").replace("<-]", "");
+    useProjectStore.getState().setSelectedFileContent(newContent);
+    useRevisionStore.getState().clearRevision(selectedFileId);
+  };
+
   return (
     <Flex direction="column" height="100%" overflow="hidden" width="100%">
       <EditorTopBar filePath={selectedFile?.filePath} />
@@ -278,40 +293,18 @@ export const EditorPanel = () => {
                   disabled={!isFileChanged}
                   title={"Save File"}
                 />
-
                 {activeRevision && (
                   <>
                     <Separator />
                     <ButtonWithTooltip
                       title="Approve Revision"
-                      onClick={() => {
-                        const markdown =
-                          useProjectStore.getState().selectedFile?.content;
-                        if (!markdown || !activeRevision) return;
-                        const newContent = markdown
-                          .replace("[->", "")
-                          .replace("<-]", "");
-                        useProjectStore
-                          .getState()
-                          .setSelectedFileContent(newContent);
-                        useRevisionStore
-                          .getState()
-                          .clearRevision(selectedFileId);
-                      }}
+                      onClick={hnadleApproveRevision}
                     >
                       <CheckIcon />
                     </ButtonWithTooltip>
                     <ButtonWithTooltip
                       title="Reject Revision"
-                      onClick={() => {
-                        const original = activeRevision.original;
-                        useProjectStore
-                          .getState()
-                          .setSelectedFileContent(original);
-                        useRevisionStore
-                          .getState()
-                          .clearRevision(selectedFileId);
-                      }}
+                      onClick={handleRejectRevision}
                     >
                       <Cross2Icon />
                     </ButtonWithTooltip>
