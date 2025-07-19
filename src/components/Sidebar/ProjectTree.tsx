@@ -3,12 +3,13 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   File,
+  FilePlus,
   Folder,
   FolderOpen,
   ChevronRight,
   ChevronDown,
 } from "lucide-react";
-import { Box, Flex, Text, Checkbox } from "@radix-ui/themes";
+import { Box, Flex, Text, Checkbox, IconButton } from "@radix-ui/themes";
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
 import { Octokit } from "@octokit/rest";
@@ -27,6 +28,7 @@ interface TreeNodeProps {
   onToggle: (nodeId: string) => void;
   onSelect: (nodeId: string) => void;
   onToggleContext: (fileId: string) => void;
+  onCreateFile: (nodeId: string) => void;
 }
 
 const TreeNode: React.FC<TreeNodeProps> = ({
@@ -38,11 +40,12 @@ const TreeNode: React.FC<TreeNodeProps> = ({
   onToggle,
   onSelect,
   onToggleContext,
+  onCreateFile,
 }) => {
   const isFolder = node.type === "folder";
   const hasChildren = node.children && node.children.length > 0;
 
-  const handleClick = useCallback(() => {
+  const handleNavigationClick = useCallback(() => {
     if (isFolder) {
       onToggle(node.id);
     } else {
@@ -50,12 +53,20 @@ const TreeNode: React.FC<TreeNodeProps> = ({
     }
   }, [isFolder, node.id, onToggle, onSelect]);
 
-  const handleCheckboxClick = useCallback(
+  const handleSelectFileClick = useCallback(
     (event: React.MouseEvent) => {
       event.stopPropagation();
       onToggleContext(node.id);
     },
     [node.id, onToggleContext],
+  );
+
+  const handleCreateFileClick = useCallback(
+    (event: React.MouseEvent) => {
+      event.stopPropagation();
+      onCreateFile(node.id);
+    },
+    [node.id, onCreateFile],
   );
 
   return (
@@ -67,10 +78,8 @@ const TreeNode: React.FC<TreeNodeProps> = ({
         style={{
           paddingLeft: `${level * 16 + 8}px`,
           cursor: "pointer",
-          borderRadius: "var(--radius-2)",
-          backgroundColor: isSelected ? "var(--accent-3)" : "transparent",
         }}
-        onClick={handleClick}
+        onClick={handleNavigationClick}
         className="hover:bg-[var(--gray-3)] transition-colors"
       >
         {isFolder && hasChildren && (
@@ -83,33 +92,38 @@ const TreeNode: React.FC<TreeNodeProps> = ({
           </Box>
         )}
 
-        {!isFolder && <Box width="16px" mr="1" />}
-
-        <Box mr="2">
-          {isFolder ? (
-            isExpanded ? (
-              <FolderOpen size={16} />
+        <Flex align="center" justify="between" gap="3">
+          <Flex gap="4" align="center" wrap="wrap">
+            {isFolder ? (
+              isExpanded ? (
+                <FolderOpen size={16} />
+              ) : (
+                <Folder size={16} />
+              )
             ) : (
-              <Folder size={16} />
-            )
+              <File size={16} />
+            )}
+
+            <Text
+              size="2"
+              weight={isSelected ? "medium" : "regular"}
+              style={{ flex: 1 }}
+            >
+              {node.name}
+            </Text>
+          </Flex>
+          {isFolder ? (
+            <IconButton onClick={handleCreateFileClick} variant="ghost">
+              <FilePlus />
+            </IconButton>
           ) : (
-            <File size={16} />
+            <Checkbox
+              onClick={handleSelectFileClick}
+              checked={contextFiles.has(node.id)}
+              size="1"
+            />
           )}
-        </Box>
-
-        <Text
-          size="2"
-          weight={isSelected ? "medium" : "regular"}
-          style={{ flex: 1 }}
-        >
-          {node.name}
-        </Text>
-
-        {!isFolder && (
-          <Box onClick={handleCheckboxClick}>
-            <Checkbox checked={contextFiles.has(node.id)} size="1" />
-          </Box>
-        )}
+        </Flex>
       </Flex>
 
       {isFolder && isExpanded && hasChildren && (
@@ -125,6 +139,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
               onToggle={onToggle}
               onSelect={onSelect}
               onToggleContext={onToggleContext}
+              onCreateFile={onCreateFile}
             />
           ))}
         </Box>
@@ -148,6 +163,10 @@ export const ProjectTree = ({ onFileSelect }: ProjectTreeProps) => {
       else next.add(fileId);
       return next;
     });
+  }, []);
+
+  const createFile = useCallback((nodeId: string) => {
+    console.log("createFile", { nodeId });
   }, []);
 
   const toggleNode = useCallback((nodeId: string) => {
@@ -178,7 +197,6 @@ export const ProjectTree = ({ onFileSelect }: ProjectTreeProps) => {
         octokit,
         selectedProject.owner,
         selectedProject.repo,
-        (name) => name.endsWith(".md"),
       );
       const root: FileTreeNode = {
         id: "ROOT",
@@ -208,6 +226,7 @@ export const ProjectTree = ({ onFileSelect }: ProjectTreeProps) => {
         onToggle={toggleNode}
         onSelect={selectNode}
         onToggleContext={toggleContext}
+        onCreateFile={createFile}
       />
     ));
   }, [
@@ -218,6 +237,7 @@ export const ProjectTree = ({ onFileSelect }: ProjectTreeProps) => {
     toggleNode,
     selectNode,
     toggleContext,
+    createFile,
   ]);
 
   if (!selectedProject) {
@@ -230,18 +250,5 @@ export const ProjectTree = ({ onFileSelect }: ProjectTreeProps) => {
     );
   }
 
-  return (
-    <Box style={{ maxWidth: "320px" }}>
-      <Box
-        style={{
-          maxHeight: "400px",
-          overflowY: "auto",
-          border: "1px solid var(--gray-6)",
-          borderRadius: "var(--radius-2)",
-        }}
-      >
-        {renderTree}
-      </Box>
-    </Box>
-  );
+  return <Box overflowY={"auto"}>{renderTree}</Box>;
 };
