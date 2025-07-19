@@ -177,6 +177,7 @@ export const FavoritesModelSelect = () => {
                       {model.name}
                     </Text>
                     <Button
+                      asChild
                       variant="ghost"
                       size="1"
                       onClick={(e) => handleRemoveModel(model.id, e)}

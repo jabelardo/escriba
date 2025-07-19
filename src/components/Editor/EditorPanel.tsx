@@ -24,8 +24,28 @@ import {
   useCellValues,
   currentSelection$,
   activeEditor$,
+  useCellValue,
+  rootEditor$,
 } from "@mdxeditor/editor";
-import { $getRoot, $getSelection, $isRangeSelection } from "lexical";
+import {
+  $caretFromPoint,
+  $createLineBreakNode,
+  $createParagraphNode,
+  $createTabNode,
+  $createTextNode,
+  $getRoot,
+  $getSelection,
+  $isRangeSelection,
+  $isRootNode,
+  $normalizeCaret,
+  $setPointFromCaret,
+  ElementNode,
+  TextNode,
+  type BaseSelection,
+  type ElementPoint,
+  type NodeKey,
+  type PointType,
+} from "lexical";
 import {
   ArchiveIcon,
   MagicWandIcon,
@@ -79,7 +99,7 @@ export const EditorPanel = () => {
   }, [selectedFile?.filePath, markdownContent]);
 
   const TextGenerator = () => {
-    const [activeEditor, currentSelection] = useCellValues(
+    const [activeEditor, readSelection] = useCellValues(
       activeEditor$,
       currentSelection$,
     );
@@ -106,49 +126,78 @@ export const EditorPanel = () => {
         }
 
         const isRevision =
-          currentSelection && activeEditor && !currentSelection.isCollapsed();
+          readSelection &&
+          activeEditor &&
+          !readSelection.isCollapsed() &&
+          $isRangeSelection(readSelection);
 
         if (isRevision) {
-          activeEditor.update(async () => {
-            const selection = $getSelection();
-            if ($isRangeSelection(selection)) {
-              const selectedText = selection.getTextContent();
-              const fullText = $getRoot().getTextContent();
+          const { selectedText, fullText } = activeEditor.read(() => {
+            const selectedText = readSelection.getTextContent().trim();
+            const fullText = $getRoot().getTextContent();
+            return { selectedText, fullText };
+          });
 
-              // Find the position of selected text
-              const selectedIndex = fullText.indexOf(selectedText);
-              const textBeforeSelection =
-                selectedIndex !== -1
-                  ? fullText.substring(0, selectedIndex)
-                  : "";
+          // Find the position of selected text
+          const selectedIndex = fullText.indexOf(selectedText);
+          const textBeforeSelection =
+            selectedIndex !== -1 ? fullText.substring(0, selectedIndex) : "";
 
-              const context = textBeforeSelection;
-              const revisePrompt = revisePromptTemplate
-                ?.replace("{{selectedText}}", selectedText)
-                ?.replace("{{context}}", context);
-              const promptText = `${systemPromp}\n${revisePrompt}`;
+          const context = ""; //textBeforeSelection;
+          const revisePrompt = revisePromptTemplate
+            ?.replace("{{selectedText}}", selectedText)
+            ?.replace("{{context}}", context);
+          const promptText = `${systemPromp}\n${revisePrompt}`;
 
-              const revised = await fetchChatCompletion({
-                apiKey,
-                model,
-                messages: [{ role: "user", content: promptText }],
-                temperature: temperature,
-                maxTokens: maxTokens,
-                signal: controller.signal,
-              });
+          //console.log({ context, selectedText, promptText });
+          //return;
 
+          const llmResult = await fetchChatCompletion({
+            apiKey,
+            model,
+            messages: [{ role: "user", content: promptText }],
+            temperature: temperature,
+            maxTokens: maxTokens,
+            signal: controller.signal,
+          });
+          const revised = llmResult.trim();
+          activeEditor.update(
+            () => {
+              const writeSelection = $getSelection();
+              if (!$isRangeSelection(writeSelection)) return;
               useRevisionStore.getState().setRevision(selectedFileId, {
                 editorState: activeEditor.getEditorState().toJSON(),
               });
 
-              selection.removeText();
-
               // BLUE SKY FUTURE: transform revised into Markdown nodes insteado of inserting it as it is
+              // const parts = `\n[->${revised}<-]\n`.split(/(\r?\n|\t)/);
+              // const nodes = [];
+              // const length = parts.length;
+              // for (let i = 0; i < length; i++) {
+              //   const part = parts[i];
+              //   if (part === "\n" || part === "\r\n") {
+              //     nodes.push($createLineBreakNode());
+              //   } else if (part === "\t") {
+              //     nodes.push($createTabNode());
+              //   } else {
+              //     nodes.push($createTextNode(part));
+              //   }
+              // }
+              // let lastNode =
+              //   writeSelection.getNodes()[writeSelection.getNodes().length - 1];
 
-              //selection.insertText(`[->${revised}<-]`)
-              selection.insertRawText(`[->${revised}<-]`);
-            }
-          });
+              // for (let node of nodes) {
+              //   lastNode.insertAfter(node);
+              //   lastNode = node;
+              // }
+
+              //writeSelection.insertText(`[->${revised}<-]`);
+              writeSelection.insertRawText(`[->${revised}<-]`);
+
+              //writeSelection.insertNodes();
+            },
+            { discrete: true },
+          );
         } else {
           const promptText = `${systemPromp}\n${continuePrompt}\n\n${markdownContent}`;
           const generatedText = await fetchChatCompletion({
@@ -233,23 +282,44 @@ export const EditorPanel = () => {
     }
   };
 
-  const handleRejectRevision = () => {
-    if (!activeRevision) return;
-    const [activeEditor] = useCellValues(activeEditor$);
-    activeEditor?.update(() => {
-      const original = activeEditor.parseEditorState(
-        activeRevision.editorState,
-      );
-      activeEditor.setEditorState(original);
-    });
+  const ApproveRevision = () => {
+    const hnadleApproveRevision = () => {
+      const markdown = useProjectStore.getState().selectedFile?.content;
+      if (!markdown || !activeRevision) return;
+      // TODO: this is very naive and is lefting a \ character at each replacenment point
+      const newContent = markdown.replace("[->", "").replace("<-]", "");
+      useProjectStore.getState().setSelectedFileContent(newContent);
+      useRevisionStore.getState().clearRevision(selectedFileId);
+    };
+
+    return (
+      <ButtonWithTooltip
+        title="Approve Revision"
+        onClick={hnadleApproveRevision}
+      >
+        <CheckIcon />
+      </ButtonWithTooltip>
+    );
   };
 
-  const hnadleApproveRevision = () => {
-    const markdown = useProjectStore.getState().selectedFile?.content;
-    if (!markdown || !activeRevision) return;
-    const newContent = markdown.replace("[->", "").replace("<-]", "");
-    useProjectStore.getState().setSelectedFileContent(newContent);
-    useRevisionStore.getState().clearRevision(selectedFileId);
+  const RejectRevision = () => {
+    const activeEditor = useCellValue(activeEditor$);
+    const handleRejectRevision = () => {
+      if (!activeRevision) return;
+      activeEditor?.update(() => {
+        const original = activeEditor.parseEditorState(
+          activeRevision.editorState,
+        );
+        activeEditor.setEditorState(original);
+      });
+      useRevisionStore.getState().clearRevision(selectedFileId);
+    };
+
+    return (
+      <ButtonWithTooltip title="Reject Revision" onClick={handleRejectRevision}>
+        <Cross2Icon />
+      </ButtonWithTooltip>
+    );
   };
 
   return (
@@ -296,18 +366,8 @@ export const EditorPanel = () => {
                 {activeRevision && (
                   <>
                     <Separator />
-                    <ButtonWithTooltip
-                      title="Approve Revision"
-                      onClick={hnadleApproveRevision}
-                    >
-                      <CheckIcon />
-                    </ButtonWithTooltip>
-                    <ButtonWithTooltip
-                      title="Reject Revision"
-                      onClick={handleRejectRevision}
-                    >
-                      <Cross2Icon />
-                    </ButtonWithTooltip>
+                    <ApproveRevision />
+                    <RejectRevision />
                   </>
                 )}
               </>
