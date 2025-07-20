@@ -6,6 +6,8 @@ import { EditorPanel } from "./Editor/EditorPanel";
 import ErrorBoundary from "./ErrorBoundary";
 import { RealmProvider } from "@mdxeditor/editor";
 
+import { NotificationProvider } from "./ui/Notification";
+
 export const Layout = () => {
   return (
     <Flex height="100vh" overflow="hidden" direction="row">
@@ -14,6 +16,7 @@ export const Layout = () => {
         <RealmProvider>
           <EditorPanel />
         </RealmProvider>
+        <NotificationProvider />
       </ErrorBoundary>
     </Flex>
   );

@@ -15,6 +15,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useFileStore } from "@/store/fileStore";
 import { fetchProjectFileContent, createProjectFile } from "@/lib/github/files";
 import { CreateFileDialog } from "./CreateFileDialog";
+import { useNotificationStore } from "@/store/notificationStore";
 import type { FileTreeNode } from "@/lib/github/filetree";
 
 interface TreeNodeProps {
@@ -32,6 +33,7 @@ interface TreeNodeProps {
 export const ProjectTree = () => {
   const selectedProject = useProjectStore((s) => s.selectedProject);
   const token = useAuthStore((s) => s.githubToken);
+  const { addNotification } = useNotificationStore();
   const [contextFiles, setContextFiles] = useState<Set<string>>(new Set());
   const { fileTree, fetchFileTree } = useFileStore();
   const rootNode = fileTree;
@@ -200,6 +202,11 @@ export const ProjectTree = () => {
 
     // Refresh file tree
     await fetchFileTree(token, selectedProject.owner, selectedProject.repo);
+    addNotification({
+      type: "success",
+      title: "File created",
+      message: `File ${path} has been created successfully.`,
+    });
   };
 
   const onFileSelect = useCallback(
