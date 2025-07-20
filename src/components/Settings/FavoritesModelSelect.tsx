@@ -186,8 +186,6 @@ export const FavoritesModelSelect = () => {
                       onClick={(e) => handleRemoveModel(model.id, e)}
                       style={{
                         padding: "4px",
-                        // minWidth: "auto",
-                        // height: "auto",
                       }}
                     >
                       <LuX size={16} />
