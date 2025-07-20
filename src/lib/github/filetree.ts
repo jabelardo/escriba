@@ -24,8 +24,15 @@ export async function fetchProjectFileTree(
     ? response.data
     : [response.data];
 
+  const sortedEntries = entries.sort((a, b) => {
+    if (a.type === b.type) {
+      return a.name.localeCompare(b.name);
+    }
+    return a.type === "dir" ? -1 : 1;
+  });
+
   const result: FileTreeNode[] = await Promise.all(
-    entries
+    sortedEntries
       .filter((item) => item.name !== ".gitkeep")
       .map(async (item) => {
         if (item.type === "dir") {
