@@ -8,11 +8,12 @@ export interface FileTreeNode {
 }
 
 export async function fetchProjectFileTree(
-  octokit: Octokit,
+  auth: string,
   owner: string,
   repo: string,
   path = "",
 ): Promise<FileTreeNode[]> {
+  const octokit = new Octokit({ auth });
   const response = await octokit.rest.repos.getContent({
     owner,
     repo,
@@ -24,28 +25,30 @@ export async function fetchProjectFileTree(
     : [response.data];
 
   const result: FileTreeNode[] = await Promise.all(
-    entries.map(async (item) => {
-      if (item.type === "dir") {
-        const children = await fetchProjectFileTree(
-          octokit,
-          owner,
-          repo,
-          item.path,
-        );
-        return {
-          id: item.path,
-          name: item.name,
-          type: "folder",
-          children,
-        };
-      } else {
-        return {
-          id: item.path,
-          name: item.name,
-          type: "file",
-        };
-      }
-    }),
+    entries
+      .filter((item) => item.name !== ".gitkeep")
+      .map(async (item) => {
+        if (item.type === "dir") {
+          const children = await fetchProjectFileTree(
+            auth,
+            owner,
+            repo,
+            item.path,
+          );
+          return {
+            id: item.path,
+            name: item.name,
+            type: "folder",
+            children,
+          };
+        } else {
+          return {
+            id: item.path,
+            name: item.name,
+            type: "file",
+          };
+        }
+      }),
   );
 
   return result;

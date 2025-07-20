@@ -12,12 +12,8 @@ import {
 import { Box, Flex, Text, Checkbox, IconButton } from "@radix-ui/themes";
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
-import { Octokit } from "@octokit/rest";
 import { fetchProjectFileTree, type FileTreeNode } from "@/lib/github/filetree";
-
-interface ProjectTreeProps {
-  onFileSelect?: (fileId: string) => void;
-}
+import { fetchProjectFileContent } from "@/lib/github/files";
 
 interface TreeNodeProps {
   node: FileTreeNode;
@@ -31,69 +27,77 @@ interface TreeNodeProps {
   onCreateFile: (nodeId: string) => void;
 }
 
-const TreeNode: React.FC<TreeNodeProps> = ({
-  node,
-  level,
-  isExpanded,
-  isSelected,
-  contextFiles,
-  onToggle,
-  onSelect,
-  onToggleContext,
-  onCreateFile,
-}) => {
-  const isFolder = node.type === "folder";
-  const hasChildren = node.children && node.children.length > 0;
+export const ProjectTree = () => {
+  const selectedProject = useProjectStore((s) => s.selectedProject);
+  const token = useAuthStore((s) => s.githubToken);
+  const [contextFiles, setContextFiles] = useState<Set<string>>(new Set());
+  const [rootNode, setRootNode] = useState<FileTreeNode | null>(null);
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
-  const handleNavigationClick = useCallback(() => {
-    if (isFolder) {
-      onToggle(node.id);
-    } else {
-      onSelect(node.id);
-    }
-  }, [isFolder, node.id, onToggle, onSelect]);
+  const TreeNode: React.FC<TreeNodeProps> = ({
+    node,
+    level,
+    isExpanded,
+    isSelected,
+    contextFiles,
+    onToggle,
+    onSelect,
+    onToggleContext,
+    onCreateFile,
+  }) => {
+    const isFolder = node.type === "folder";
+    const hasChildren = node.children && node.children.length > 0;
 
-  const handleSelectFileClick = useCallback(
-    (event: React.MouseEvent) => {
-      event.stopPropagation();
-      onToggleContext(node.id);
-    },
-    [node.id, onToggleContext],
-  );
+    const handleNavigationClick = useCallback(() => {
+      if (isFolder) {
+        onToggle(node.id);
+      } else {
+        onSelect(node.id);
+      }
+    }, [isFolder, node.id, onToggle, onSelect]);
 
-  const handleCreateFileClick = useCallback(
-    (event: React.MouseEvent) => {
-      event.stopPropagation();
-      onCreateFile(node.id);
-    },
-    [node.id, onCreateFile],
-  );
+    const handleSelectFileClick = useCallback(
+      (event: React.MouseEvent) => {
+        event.stopPropagation();
+        onToggleContext(node.id);
+      },
+      [node.id, onToggleContext],
+    );
 
-  return (
-    <>
-      <Flex
-        align="center"
-        py="1"
-        px="2"
-        style={{
-          paddingLeft: `${level * 16 + 8}px`,
-          cursor: "pointer",
-        }}
-        onClick={handleNavigationClick}
-        className="hover:bg-[var(--gray-3)] transition-colors"
-      >
-        {isFolder && hasChildren && (
-          <Box mr="1">
-            {isExpanded ? (
-              <ChevronDown size={16} />
-            ) : (
-              <ChevronRight size={16} />
+    const handleCreateFileClick = useCallback(
+      (event: React.MouseEvent) => {
+        event.stopPropagation();
+        onCreateFile(node.id);
+      },
+      [node.id, onCreateFile],
+    );
+
+    return (
+      <>
+        <Flex
+          align="center"
+          justify={"start"}
+          py="1"
+          px="2"
+          gap={"2"}
+          style={{
+            paddingLeft: `${level * 16 + 8}px`,
+            cursor: "pointer",
+          }}
+          onClick={handleNavigationClick}
+          className="hover:bg-[var(--gray-3)] transition-colors"
+        >
+          <Flex gap={"2"} align="center" wrap="wrap">
+            {isFolder && hasChildren && (
+              <>
+                {isExpanded ? (
+                  <ChevronDown size={16} />
+                ) : (
+                  <ChevronRight size={16} />
+                )}
+              </>
             )}
-          </Box>
-        )}
-
-        <Flex align="center" justify="between" gap="3">
-          <Flex gap="4" align="center" wrap="wrap">
             {isFolder ? (
               isExpanded ? (
                 <FolderOpen size={16} />
@@ -124,43 +128,35 @@ const TreeNode: React.FC<TreeNodeProps> = ({
             />
           )}
         </Flex>
-      </Flex>
 
-      {isFolder && isExpanded && hasChildren && (
-        <Box>
-          {node.children!.map((child) => (
-            <TreeNode
-              key={child.id}
-              node={child}
-              level={level + 1}
-              isExpanded={isExpanded}
-              isSelected={isSelected}
-              contextFiles={contextFiles}
-              onToggle={onToggle}
-              onSelect={onSelect}
-              onToggleContext={onToggleContext}
-              onCreateFile={onCreateFile}
-            />
-          ))}
-        </Box>
-      )}
-    </>
-  );
-};
-
-export const ProjectTree = ({ onFileSelect }: ProjectTreeProps) => {
-  const selectedProject = useProjectStore((s) => s.selectedProject);
-  const token = useAuthStore((s) => s.githubToken);
-  const [contextFiles, setContextFiles] = useState<Set<string>>(new Set());
-  const [rootNode, setRootNode] = useState<FileTreeNode | null>(null);
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [selectedNode, setSelectedNode] = useState<string | null>(null);
+        {isFolder && isExpanded && hasChildren && (
+          <>
+            {node.children!.map((child) => (
+              <TreeNode
+                key={child.id}
+                node={child}
+                level={level + 1}
+                isExpanded={expandedNodes.has(child.id)}
+                isSelected={isSelected}
+                contextFiles={contextFiles}
+                onToggle={onToggle}
+                onSelect={onSelect}
+                onToggleContext={onToggleContext}
+                onCreateFile={onCreateFile}
+              />
+            ))}
+          </>
+        )}
+      </>
+    );
+  };
 
   const toggleContext = useCallback((fileId: string) => {
     setContextFiles((prev) => {
       const next = new Set(prev);
       if (next.has(fileId)) next.delete(fileId);
       else next.add(fileId);
+      console.log({ prev, next });
       return next;
     });
   }, []);
@@ -181,6 +177,21 @@ export const ProjectTree = ({ onFileSelect }: ProjectTreeProps) => {
     });
   }, []);
 
+  const onFileSelect = async (filePath: string) => {
+    if (!selectedProject || !token) return;
+    const content = await fetchProjectFileContent(
+      token,
+      selectedProject.owner,
+      selectedProject.repo,
+      filePath,
+    );
+    useProjectStore.getState().setSelectedFile({
+      filePath,
+      content: content.content,
+      sha: content.sha,
+    });
+  };
+
   const selectNode = useCallback(
     (nodeId: string) => {
       setSelectedNode(nodeId);
@@ -192,9 +203,8 @@ export const ProjectTree = ({ onFileSelect }: ProjectTreeProps) => {
   useEffect(() => {
     const load = async () => {
       if (!selectedProject || !token) return;
-      const octokit = new Octokit({ auth: token });
       const children = await fetchProjectFileTree(
-        octokit,
+        token,
         selectedProject.owner,
         selectedProject.repo,
       );
@@ -250,5 +260,9 @@ export const ProjectTree = ({ onFileSelect }: ProjectTreeProps) => {
     );
   }
 
-  return <Box overflowY={"auto"}>{renderTree}</Box>;
+  return (
+    <Flex direction="column" justify={"start"}>
+      {renderTree}
+    </Flex>
+  );
 };

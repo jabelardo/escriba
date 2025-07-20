@@ -2,12 +2,13 @@ import { Octokit } from "@octokit/rest";
 import { useProjectStore } from "@/store/projectStore";
 
 export async function fetchProjectFileContent(
-  octokit: Octokit,
+  auth: string,
   owner: string,
   repo: string,
   path: string,
   branch = "main",
 ): Promise<any> {
+  const octokit = new Octokit({ auth });
   const res = await octokit.repos.getContent({
     owner,
     repo,
@@ -31,7 +32,7 @@ export async function fetchProjectFileContent(
 }
 
 export async function saveProjectFileContent({
-  octokit,
+  auth,
   owner,
   repo,
   path,
@@ -40,7 +41,7 @@ export async function saveProjectFileContent({
   sha,
   branch = "main",
 }: {
-  octokit: Octokit;
+  auth: string;
   owner: string;
   repo: string;
   path: string;
@@ -50,6 +51,7 @@ export async function saveProjectFileContent({
   branch?: string;
 }) {
   const contentEncoded = bytesToBase64(new TextEncoder().encode(content));
+  const octokit = new Octokit({ auth });
   const result = await octokit.repos.createOrUpdateFileContents({
     owner,
     repo,

@@ -11,10 +11,6 @@ import {
 
 import { RemoveProjectButton } from "./RemoveProjectButton";
 import { SelectProjectDialog } from "./SelectProjectDialog";
-import { Octokit } from "@octokit/rest";
-import { useProjectStore } from "@/store/projectStore";
-import { useAuthStore } from "@/store/authStore";
-import { fetchProjectFileContent } from "@/lib/github/files";
 import { SettingsPanel } from "../Settings/SettingsPanel";
 import AddOrCreateProjectDialog from "./AddOrCreateProjectDialog";
 import { ProjectTree } from "./ProjectTree";
@@ -42,9 +38,6 @@ const SettingsDialog = () => {
 };
 
 export const Sidebar = () => {
-  const selectedProject = useProjectStore((s) => s.selectedProject);
-  const token = useAuthStore((s) => s.githubToken);
-
   return (
     <Flex
       width="280px"
@@ -62,23 +55,7 @@ export const Sidebar = () => {
       <RemoveProjectButton />
       <Separator />
       <Text mt="4">📝 Files:</Text>
-      <ProjectTree
-        onFileSelect={async (filePath) => {
-          if (!selectedProject || !token) return;
-          const octokit = new Octokit({ auth: token });
-          const content = await fetchProjectFileContent(
-            octokit,
-            selectedProject.owner,
-            selectedProject.repo,
-            filePath,
-          );
-          useProjectStore.getState().setSelectedFile({
-            filePath,
-            content: content.content,
-            sha: content.sha,
-          });
-        }}
-      />
+      <ProjectTree />
       <Separator />
       <SettingsDialog />
       <Button size="2" variant="ghost" onClick={() => alert("Logout")}>
