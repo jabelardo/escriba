@@ -74,3 +74,33 @@ function bytesToBase64(bytes: Uint8Array) {
   ).join("");
   return btoa(binString);
 }
+
+export async function createProjectFile({
+  auth,
+  owner,
+  repo,
+  path,
+  content,
+  message,
+  branch = "main",
+}: {
+  auth: string;
+  owner: string;
+  repo: string;
+  path: string;
+  content: string;
+  message: string;
+  branch?: string;
+}) {
+  const contentEncoded = bytesToBase64(new TextEncoder().encode(content));
+  const octokit = new Octokit({ auth });
+  const result = await octokit.repos.createOrUpdateFileContents({
+    owner,
+    repo,
+    path,
+    branch,
+    message,
+    content: contentEncoded,
+  });
+  return result;
+}

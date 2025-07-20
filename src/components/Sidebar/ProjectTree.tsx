@@ -13,7 +13,8 @@ import { Box, Flex, Text, Checkbox, IconButton } from "@radix-ui/themes";
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
 import { fetchProjectFileTree, type FileTreeNode } from "@/lib/github/filetree";
-import { fetchProjectFileContent } from "@/lib/github/files";
+import { fetchProjectFileContent, createProjectFile } from "@/lib/github/files";
+import { CreateFileDialog } from "./CreateFileDialog";
 
 interface TreeNodeProps {
   node: FileTreeNode;
@@ -34,6 +35,8 @@ export const ProjectTree = () => {
   const [rootNode, setRootNode] = useState<FileTreeNode | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [isCreateFileDialogOpen, setCreateFileDialogOpen] = useState(false);
+  const [currentNode, setCurrentNode] = useState<string | null>(null);
 
   const TreeNode: React.FC<TreeNodeProps> = ({
     node,
@@ -162,7 +165,8 @@ export const ProjectTree = () => {
   }, []);
 
   const createFile = useCallback((nodeId: string) => {
-    console.log("createFile", { nodeId });
+    setCurrentNode(nodeId);
+    setCreateFileDialogOpen(true);
   }, []);
 
   const toggleNode = useCallback((nodeId: string) => {
@@ -177,7 +181,36 @@ export const ProjectTree = () => {
     });
   }, []);
 
-  const onFileSelect = async (filePath: string) => {
+  const handleCreateFile = async (filename: string) => {
+    if (!selectedProject || !token || !currentNode) return;
+
+    const path = currentNode === "ROOT" ? filename : `${currentNode}/${filename}`;
+
+    await createProjectFile({
+      auth: token,
+      owner: selectedProject.owner,
+      repo: selectedProject.repo,
+      path,
+      content: "",
+      message: `feat: create ${path}`,
+    });
+
+    // Refresh file tree
+    const children = await fetchProjectFileTree(
+      token,
+      selectedProject.owner,
+      selectedProject.repo,
+    );
+    const root: FileTreeNode = {
+      id: "ROOT",
+      name: "",
+      type: "folder",
+      children,
+    };
+    setRootNode(root);
+  };
+
+  const onFileSelect = useCallback(async (filePath: string) => {
     if (!selectedProject || !token) return;
     const content = await fetchProjectFileContent(
       token,
@@ -190,12 +223,12 @@ export const ProjectTree = () => {
       content: content.content,
       sha: content.sha,
     });
-  };
+  }, [selectedProject, token]);
 
   const selectNode = useCallback(
     (nodeId: string) => {
       setSelectedNode(nodeId);
-      onFileSelect?.(nodeId);
+      onFileSelect(nodeId);
     },
     [onFileSelect],
   );
@@ -263,6 +296,11 @@ export const ProjectTree = () => {
   return (
     <Flex direction="column" justify={"start"}>
       {renderTree}
+      <CreateFileDialog
+        isOpen={isCreateFileDialogOpen}
+        onClose={() => setCreateFileDialogOpen(false)}
+        onCreate={handleCreateFile}
+      />
     </Flex>
   );
 };
