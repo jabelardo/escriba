@@ -1,11 +1,108 @@
-"use client";
-
 import { Flex, Text, Button, Dialog, TextField } from "@radix-ui/themes";
 import { Toast, Portal } from "radix-ui";
 import { useState } from "react";
 import { Octokit } from "@octokit/rest";
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
+
+const AddExistingProject = ({
+  input,
+  setInput,
+  handleAdd,
+  loading,
+  isValidRepoToAdd,
+  openMissingFoldersDialog,
+  setOpenMissingFoldersDialog,
+  missing,
+  handleCreateFolders,
+  setMissing,
+}) => (
+  <Flex gap="3" pt="3">
+    <Flex direction="row" gap="3">
+      <TextField.Root
+        placeholder="owner/repo or GitHub URL"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+      />
+
+      <Button
+        color="teal"
+        onClick={handleAdd}
+        loading={loading}
+        disabled={!isValidRepoToAdd(input) || loading}
+      >
+        Add Existing Project
+      </Button>
+    </Flex>
+    <Dialog.Root
+      open={openMissingFoldersDialog}
+      onOpenChange={(e) => setOpenMissingFoldersDialog(e)}
+    >
+      <Dialog.Content>
+        <Dialog.Title>Create missing folders?</Dialog.Title>
+        <Dialog.Description />
+        <Flex direction="column" gap="3">
+          <Text>
+            The repository is missing these required folders:{" "}
+            <strong>{missing.join(", ")}</strong>.
+          </Text>
+          <Text mt="2">
+            Escriba requires both <code>books/</code> and{" "}
+            <code>references/</code> to function. Would you like to create them
+            to continue?
+          </Text>
+        </Flex>
+        <Flex gap="3" mt="3" justify="end">
+          <Dialog.Close>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setOpenMissingFoldersDialog(false);
+                setMissing([]);
+              }}
+            >
+              Cancel
+            </Button>
+          </Dialog.Close>
+          <Button
+            color="teal"
+            ml="3"
+            onClick={handleCreateFolders}
+            loading={loading}
+          >
+            Create Folders
+          </Button>
+        </Flex>
+      </Dialog.Content>
+    </Dialog.Root>
+  </Flex>
+);
+
+const CreateProject = ({
+  repoName,
+  setRepoName,
+  handleCreate,
+  loading,
+  isValidRepoToCreate,
+}) => (
+  <Flex gap="3" pt="3">
+    <Flex direction="row" gap="3">
+      <TextField.Root
+        placeholder="New repository name"
+        value={repoName}
+        onChange={(e) => setRepoName(e.target.value)}
+      />
+      <Button
+        color="teal"
+        onClick={handleCreate}
+        loading={loading}
+        disabled={!isValidRepoToCreate(repoName) || loading}
+      >
+        Create Project
+      </Button>
+    </Flex>
+  </Flex>
+);
 
 const AddOrCreateProjectDialog = () => {
   const token = useAuthStore((s) => s.githubToken);
@@ -154,67 +251,6 @@ const AddOrCreateProjectDialog = () => {
     //throw new Error("Function not implemented.")
   };
 
-  const AddExistingProject = () => (
-    <Flex gap="3" pt="3">
-      <Flex direction="row" gap="3">
-        <TextField.Root
-          placeholder="owner/repo or GitHub URL"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-        />
-        <Button
-          color="teal"
-          onClick={handleAdd}
-          loading={loading}
-          disabled={!isValidRepoToAdd(input) || loading}
-        >
-          Add Existing Project
-        </Button>
-      </Flex>
-      <Dialog.Root
-        open={openMissingFoldersDialog}
-        onOpenChange={(e) => setOpenMissingFoldersDialog(e)}
-      >
-        <Dialog.Content>
-          <Dialog.Title>Create missing folders?</Dialog.Title>
-          <Dialog.Description />
-          <Flex direction="column" gap="3">
-            <Text>
-              The repository is missing these required folders:{" "}
-              <strong>{missing.join(", ")}</strong>.
-            </Text>
-            <Text mt="2">
-              Escriba requires both <code>books/</code> and{" "}
-              <code>references/</code> to function. Would you like to create
-              them to continue?
-            </Text>
-          </Flex>
-          <Flex gap="3" mt="3" justify="end">
-            <Dialog.Close>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setOpenMissingFoldersDialog(false);
-                  setMissing([]);
-                }}
-              >
-                Cancel
-              </Button>
-            </Dialog.Close>
-            <Button
-              color="teal"
-              ml="3"
-              onClick={handleCreateFolders}
-              loading={loading}
-            >
-              Create Folders
-            </Button>
-          </Flex>
-        </Dialog.Content>
-      </Dialog.Root>
-    </Flex>
-  );
-
   const handleCreate = async () => {
     setLoading(true);
 
@@ -260,26 +296,6 @@ const AddOrCreateProjectDialog = () => {
     setLoading(false);
   };
 
-  const CreateProject = () => (
-    <Flex gap="3" pt="3">
-      <Flex direction="row" gap="3">
-        <TextField.Root
-          placeholder="New repository name"
-          value={repoName}
-          onChange={(e) => setRepoName(e.target.value)}
-        />
-        <Button
-          color="teal"
-          onClick={handleCreate}
-          loading={loading}
-          disabled={!isValidRepoToCreate(repoName) || loading}
-        >
-          Create Project
-        </Button>
-      </Flex>
-    </Flex>
-  );
-
   return (
     <>
       <Dialog.Root>
@@ -292,8 +308,25 @@ const AddOrCreateProjectDialog = () => {
           <Dialog.Title>Manage Projects</Dialog.Title>
           <Dialog.Description />
           <Flex direction="column" gap="3">
-            <AddExistingProject />
-            <CreateProject />
+            <AddExistingProject
+              input={input}
+              setInput={setInput}
+              handleAdd={handleAdd}
+              loading={loading}
+              isValidRepoToAdd={isValidRepoToAdd}
+              openMissingFoldersDialog={openMissingFoldersDialog}
+              setOpenMissingFoldersDialog={setOpenMissingFoldersDialog}
+              missing={missing}
+              handleCreateFolders={handleCreateFolders}
+              setMissing={setMissing}
+            />
+            <CreateProject
+              repoName={repoName}
+              setRepoName={setRepoName}
+              handleCreate={handleCreate}
+              loading={loading}
+              isValidRepoToCreate={isValidRepoToCreate}
+            />
           </Flex>
           <Flex gap="3" mt="4" justify="end">
             <Dialog.Close>
