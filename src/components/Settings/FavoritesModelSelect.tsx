@@ -13,11 +13,19 @@ import {
   Button,
   Card,
   Flex,
-  Checkbox,
   Badge,
   Spinner,
+  CheckboxGroup,
+  TextField,
+  IconButton,
+  Callout,
 } from "@radix-ui/themes";
-import { ChevronDown as LuChevronDown, X as LuX } from "lucide-react";
+import {
+  CircleAlert as LuCircleAlert,
+  ChevronDown as LuChevronDown,
+  X as LuX,
+  Search as LuSearch,
+} from "lucide-react";
 import { useSettingsStore } from "@/store/settingsStore";
 import { fetchOpenRouterModels } from "@/lib/openrouter/models";
 import { useAsync } from "react-use";
@@ -60,11 +68,7 @@ export const FavoritesModelSelect = () => {
 
   // Handle model selection toggle
   const handleModelToggle = useCallback(
-    (modelId: string) => {
-      const newFavorites = favoriteModels.includes(modelId)
-        ? favoriteModels.filter((id) => id !== modelId)
-        : [...favoriteModels, modelId];
-
+    (newFavorites: string[]) => {
       setFavoriteModels(newFavorites);
     },
     [favoriteModels, setFavoriteModels],
@@ -157,7 +161,7 @@ export const FavoritesModelSelect = () => {
                 {selectedModels.slice(0, 3).map((model) => (
                   <Badge
                     key={model.id}
-                    size="1"
+                    size="2"
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -178,20 +182,20 @@ export const FavoritesModelSelect = () => {
                     <Button
                       asChild
                       variant="ghost"
-                      size="1"
+                      size="2"
                       onClick={(e) => handleRemoveModel(model.id, e)}
                       style={{
-                        padding: "2px",
-                        minWidth: "auto",
-                        height: "auto",
+                        padding: "4px",
+                        // minWidth: "auto",
+                        // height: "auto",
                       }}
                     >
-                      <LuX size={10} />
+                      <LuX size={16} />
                     </Button>
                   </Badge>
                 ))}
                 {selectedModels.length > 3 && (
-                  <Badge size="1" color="gray">
+                  <Badge size="2" color="gray">
                     +{selectedModels.length - 3} more
                   </Badge>
                 )}
@@ -217,79 +221,64 @@ export const FavoritesModelSelect = () => {
       {isOpen && hasModels && (
         <Card
           style={{
+            padding: "8px",
             position: "absolute",
-            top: "100%",
-            left: 0,
-            right: 0,
             zIndex: 50,
             marginTop: "4px",
-            maxHeight: "300px",
-            border: "1px solid var(--gray-6)",
-            boxShadow:
-              "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+            left: 0,
+            right: 0,
           }}
         >
           {/* Search input */}
-          <Box p="2" style={{ borderBottom: "1px solid var(--gray-6)" }}>
-            <input
-              type="text"
-              placeholder="Search models..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "6px 8px",
-                border: "1px solid var(--gray-6)",
-                borderRadius: "var(--radius-2)",
-                fontSize: "14px",
-                outline: "none",
-                backgroundColor: "var(--color-background)",
-              }}
-              onKeyDown={(e) => e.stopPropagation()}
-            />
-          </Box>
+          <TextField.Root
+            placeholder="Search models..."
+            size="2"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          >
+            <TextField.Slot>
+              <LuSearch height="16" width="16" />
+            </TextField.Slot>
+            <TextField.Slot>
+              <IconButton
+                size="1"
+                variant="ghost"
+                onClick={() => {
+                  if (searchTerm.length) setSearchTerm("");
+                  else setIsOpen(false);
+                }}
+              >
+                <LuX height="14" width="14" />
+              </IconButton>
+            </TextField.Slot>
+          </TextField.Root>
 
           {/* Model list */}
           <Box style={{ maxHeight: "250px", overflowY: "auto" }}>
             {filteredModels.length === 0 ? (
-              <Box p="3">
-                <Text size="2" color="gray">
+              <Callout.Root color={searchTerm ? "blue" : "red"}>
+                <Callout.Icon>
+                  <LuCircleAlert size={20} />
+                </Callout.Icon>
+                <Callout.Text>
                   {searchTerm
                     ? "No models match your search"
                     : "No models available"}
-                </Text>
-              </Box>
+                </Callout.Text>
+              </Callout.Root>
             ) : (
-              filteredModels.map((model) => (
-                <Box
-                  key={model.id}
-                  p="2"
-                  style={{
-                    cursor: "pointer",
-                    borderRadius: "var(--radius-2)",
-                    margin: "2px",
-                  }}
-                  className="hover:bg-[var(--gray-3)]"
-                  onClick={() => handleModelToggle(model.id)}
-                >
-                  <Flex align="center" gap="2">
-                    <Checkbox
-                      checked={favoriteModels.includes(model.id)}
-                      size="1"
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={() => handleModelToggle(model.id)}
-                    />
-                    <Box style={{ flex: 1 }}>
-                      <Text size="2" weight="medium">
-                        {model.name}
-                      </Text>
-                      <Text size="1" color="gray">
-                        {model.id}
-                      </Text>
-                    </Box>
-                  </Flex>
-                </Box>
-              ))
+              <CheckboxGroup.Root
+                defaultValue={favoriteModels}
+                onValueChange={(e) => {
+                  handleModelToggle(e);
+                }}
+              >
+                {filteredModels.map((model) => (
+                  <CheckboxGroup.Item value={model.id}>
+                    {model.name}
+                  </CheckboxGroup.Item>
+                ))}
+              </CheckboxGroup.Root>
             )}
           </Box>
         </Card>
