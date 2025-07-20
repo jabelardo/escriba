@@ -12,9 +12,10 @@ import {
 import { Box, Flex, Text, Checkbox, IconButton } from "@radix-ui/themes";
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
-import { fetchProjectFileTree, type FileTreeNode } from "@/lib/github/filetree";
+import { useFileStore } from "@/store/fileStore";
 import { fetchProjectFileContent, createProjectFile } from "@/lib/github/files";
 import { CreateFileDialog } from "./CreateFileDialog";
+import type { FileTreeNode } from "@/lib/github/filetree";
 
 interface TreeNodeProps {
   node: FileTreeNode;
@@ -32,7 +33,8 @@ export const ProjectTree = () => {
   const selectedProject = useProjectStore((s) => s.selectedProject);
   const token = useAuthStore((s) => s.githubToken);
   const [contextFiles, setContextFiles] = useState<Set<string>>(new Set());
-  const [rootNode, setRootNode] = useState<FileTreeNode | null>(null);
+  const { fileTree, fetchFileTree } = useFileStore();
+  const rootNode = fileTree;
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [isCreateFileDialogOpen, setCreateFileDialogOpen] = useState(false);
@@ -184,7 +186,8 @@ export const ProjectTree = () => {
   const handleCreateFile = async (filename: string) => {
     if (!selectedProject || !token || !currentNode) return;
 
-    const path = currentNode === "ROOT" ? filename : `${currentNode}/${filename}`;
+    const path =
+      currentNode === "ROOT" ? filename : `${currentNode}/${filename}`;
 
     await createProjectFile({
       auth: token,
@@ -196,34 +199,26 @@ export const ProjectTree = () => {
     });
 
     // Refresh file tree
-    const children = await fetchProjectFileTree(
-      token,
-      selectedProject.owner,
-      selectedProject.repo,
-    );
-    const root: FileTreeNode = {
-      id: "ROOT",
-      name: "",
-      type: "folder",
-      children,
-    };
-    setRootNode(root);
+    await fetchFileTree(token, selectedProject.owner, selectedProject.repo);
   };
 
-  const onFileSelect = useCallback(async (filePath: string) => {
-    if (!selectedProject || !token) return;
-    const content = await fetchProjectFileContent(
-      token,
-      selectedProject.owner,
-      selectedProject.repo,
-      filePath,
-    );
-    useProjectStore.getState().setSelectedFile({
-      filePath,
-      content: content.content,
-      sha: content.sha,
-    });
-  }, [selectedProject, token]);
+  const onFileSelect = useCallback(
+    async (filePath: string) => {
+      if (!selectedProject || !token) return;
+      const content = await fetchProjectFileContent(
+        token,
+        selectedProject.owner,
+        selectedProject.repo,
+        filePath,
+      );
+      useProjectStore.getState().setSelectedFile({
+        filePath,
+        content: content.content,
+        sha: content.sha,
+      });
+    },
+    [selectedProject, token],
+  );
 
   const selectNode = useCallback(
     (nodeId: string) => {
@@ -236,24 +231,12 @@ export const ProjectTree = () => {
   useEffect(() => {
     const load = async () => {
       if (!selectedProject || !token) return;
-      const children = await fetchProjectFileTree(
-        token,
-        selectedProject.owner,
-        selectedProject.repo,
-      );
-      const root: FileTreeNode = {
-        id: "ROOT",
-        name: "",
-        type: "folder",
-        children,
-      };
-      setRootNode(root);
-
+      await fetchFileTree(token, selectedProject.owner, selectedProject.repo);
       // Auto-expand root
       setExpandedNodes(new Set(["ROOT"]));
     };
     load();
-  }, [selectedProject, token]);
+  }, [selectedProject, token, fetchFileTree]);
 
   const renderTree = useMemo(() => {
     if (!rootNode || !rootNode.children) return null;
