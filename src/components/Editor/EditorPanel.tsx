@@ -25,27 +25,21 @@ import {
   currentSelection$,
   activeEditor$,
   useCellValue,
-  rootEditor$,
 } from "@mdxeditor/editor";
 import {
-  $caretFromPoint,
   $createLineBreakNode,
   $createParagraphNode,
   $createTabNode,
   $createTextNode,
+  $getNodeByKey,
   $getRoot,
   $getSelection,
   $isRangeSelection,
-  $isRootNode,
-  $normalizeCaret,
-  $setPointFromCaret,
-  ElementNode,
+  ParagraphNode,
   TextNode,
-  type BaseSelection,
-  type ElementPoint,
-  type NodeKey,
-  type PointType,
+  type LexicalNode,
 } from "lexical";
+import { brown } from "@radix-ui/colors";
 import {
   ArchiveIcon,
   MagicWandIcon,
@@ -56,7 +50,6 @@ import {
 import { EditorTopBar } from "./EditorTopBar";
 import { fetchChatCompletion } from "@/lib/openrouter/chat";
 import { saveProjectFileContent } from "@/lib/github/files";
-import { Octokit } from "@octokit/rest";
 import { useAuthStore } from "@/store/authStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useRevisionStore } from "@/store/revisionStore";
@@ -104,13 +97,30 @@ export const EditorPanel = () => {
       currentSelection$,
     );
 
+    useEffect(() => {
+      if (activeEditor) {
+        return activeEditor.registerNodeTransform(
+          ParagraphNode,
+          (paragraphNode: ParagraphNode) => {
+            if (paragraphNode.getKey() === activeRevision?.revisedNodeKey) {
+              for (const child of paragraphNode.getChildren()) {
+                if (child instanceof TextNode) {
+                  child.setStyle(`background-color: ${brown.brown10};`);
+                }
+              }
+            }
+          },
+        );
+      }
+    }, [activeEditor]);
+
     const handleGenerateText = async () => {
       setIsGenerating(true);
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
       try {
-        const systemPromp = activeSystemPrompt?.value || "";
+        const systemPrompt = activeSystemPrompt?.value || "";
         const continuePrompt = activeContinuePrompt?.value || "";
         const revisePromptTemplate = activeRevisePrompt?.value || "";
         const model =
@@ -143,14 +153,14 @@ export const EditorPanel = () => {
           const textBeforeSelection =
             selectedIndex !== -1 ? fullText.substring(0, selectedIndex) : "";
 
-          const context = ""; //textBeforeSelection;
+          const context =
+            textBeforeSelection.length > 0
+              ? `[CONTEXT:begin]${textBeforeSelection}[CONTEXT:end]`
+              : "";
           const revisePrompt = revisePromptTemplate
             ?.replace("{{selectedText}}", selectedText)
             ?.replace("{{context}}", context);
-          const promptText = `${systemPromp}\n${revisePrompt}`;
-
-          //console.log({ context, selectedText, promptText });
-          //return;
+          const promptText = `${systemPrompt}\n${revisePrompt}`;
 
           const llmResult = await fetchChatCompletion({
             apiKey,
@@ -161,45 +171,50 @@ export const EditorPanel = () => {
             signal: controller.signal,
           });
           const revised = llmResult.trim();
+
           activeEditor.update(
             () => {
               const writeSelection = $getSelection();
               if (!$isRangeSelection(writeSelection)) return;
+              const inRevisionNodeKeys = writeSelection
+                .getNodes()
+                .map((node) => node.getKey());
+              const previousEditorState = activeEditor
+                .getEditorState()
+                .toJSON();
+
+              const parts = `\n[->\n${revised}\n<-]\n`.split(/(\r?\n|\t)/);
+              const newNodes: LexicalNode[] = [];
+              const length = parts.length;
+              for (let i = 0; i < length; i++) {
+                const part = parts[i];
+                if (part === "\n" || part === "\r\n") {
+                  newNodes.push($createLineBreakNode());
+                } else if (part === "\t") {
+                  newNodes.push($createTabNode());
+                } else {
+                  newNodes.push($createTextNode(part));
+                }
+              }
+              const endPoint = writeSelection.isBackward()
+                ? writeSelection.anchor
+                : writeSelection.focus;
+
+              const endNode = endPoint.getNode();
+              const paragraphNode = $createParagraphNode();
+              paragraphNode.append(...newNodes);
+              endNode.insertAfter(paragraphNode);
+
               useRevisionStore.getState().setRevision(selectedFileId, {
-                editorState: activeEditor.getEditorState().toJSON(),
+                previousEditorState,
+                inRevisionNodeKeys,
+                revisedNodeKey: paragraphNode.getKey(),
               });
-
-              // BLUE SKY FUTURE: transform revised into Markdown nodes insteado of inserting it as it is
-              // const parts = `\n[->${revised}<-]\n`.split(/(\r?\n|\t)/);
-              // const nodes = [];
-              // const length = parts.length;
-              // for (let i = 0; i < length; i++) {
-              //   const part = parts[i];
-              //   if (part === "\n" || part === "\r\n") {
-              //     nodes.push($createLineBreakNode());
-              //   } else if (part === "\t") {
-              //     nodes.push($createTabNode());
-              //   } else {
-              //     nodes.push($createTextNode(part));
-              //   }
-              // }
-              // let lastNode =
-              //   writeSelection.getNodes()[writeSelection.getNodes().length - 1];
-
-              // for (let node of nodes) {
-              //   lastNode.insertAfter(node);
-              //   lastNode = node;
-              // }
-
-              //writeSelection.insertText(`[->${revised}<-]`);
-              writeSelection.insertRawText(`[->${revised}<-]`);
-
-              //writeSelection.insertNodes();
             },
             { discrete: true },
           );
         } else {
-          const promptText = `${systemPromp}\n${continuePrompt}\n\n${markdownContent}`;
+          const promptText = `${systemPrompt}\n${continuePrompt}\n\n${markdownContent}`;
           const generatedText = await fetchChatCompletion({
             apiKey,
             model,
@@ -247,13 +262,12 @@ export const EditorPanel = () => {
     console.log("Saving file:", { selectedFile, token });
     if (!selectedFile || !token) return;
 
-    const octokit = new Octokit({ auth: token });
     const project = useProjectStore.getState().selectedProject;
     if (!project) return;
 
     try {
       await saveProjectFileContent({
-        octokit,
+        auth: token,
         owner: project.owner,
         repo: project.repo,
         path: selectedFile.filePath,
@@ -283,10 +297,20 @@ export const EditorPanel = () => {
   };
 
   const ApproveRevision = () => {
-    const hnadleApproveRevision = () => {
+    const activeEditor = useCellValue(activeEditor$);
+    const handleApproveRevision = () => {
       const markdown = useProjectStore.getState().selectedFile?.content;
-      if (!markdown || !activeRevision) return;
-      // TODO: this is very naive and is lefting a \ character at each replacenment point
+      if (!markdown || !activeRevision || !activeEditor) return;
+      activeEditor?.update(() => {
+        activeRevision.inRevisionNodeKeys.forEach((key) => {
+          const node = $getNodeByKey(key);
+          if (node && activeRevision.inRevisionNodeKeys.includes(key)) {
+            node.remove();
+          }
+        });
+      });
+
+      // TODO: this is very naive and it left a \ character at each replacement point
       const newContent = markdown.replace("[->", "").replace("<-]", "");
       useProjectStore.getState().setSelectedFileContent(newContent);
       useRevisionStore.getState().clearRevision(selectedFileId);
@@ -295,7 +319,7 @@ export const EditorPanel = () => {
     return (
       <ButtonWithTooltip
         title="Approve Revision"
-        onClick={hnadleApproveRevision}
+        onClick={handleApproveRevision}
       >
         <CheckIcon />
       </ButtonWithTooltip>
@@ -308,7 +332,7 @@ export const EditorPanel = () => {
       if (!activeRevision) return;
       activeEditor?.update(() => {
         const original = activeEditor.parseEditorState(
-          activeRevision.editorState,
+          activeRevision.previousEditorState,
         );
         activeEditor.setEditorState(original);
       });

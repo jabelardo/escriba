@@ -4,7 +4,9 @@ import { persist } from "zustand/middleware";
 import type { SerializedEditorState } from "lexical";
 
 export interface Revision {
-  editorState: SerializedEditorState;
+  previousEditorState: SerializedEditorState;
+  inRevisionNodeKeys: string[];
+  revisedNodeKey: string;
 }
 
 interface RevisionState {
