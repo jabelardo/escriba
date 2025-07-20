@@ -5,7 +5,20 @@ import { Octokit } from "@octokit/rest";
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
 
-const AddExistingProject = ({
+interface AddExistingProjectProps {
+  input: string;
+  setInput: (input: string) => void;
+  handleAdd: () => void;
+  loading: boolean;
+  isValidRepoToAdd: (input: string) => boolean;
+  openMissingFoldersDialog: boolean;
+  setOpenMissingFoldersDialog: (open: boolean) => void;
+  missing: string[];
+  handleCreateFolders: () => void;
+  setMissing: (missing: string[]) => void;
+}
+
+const AddExistingProject: React.FC<AddExistingProjectProps> = ({
   input,
   setInput,
   handleAdd,
@@ -78,7 +91,15 @@ const AddExistingProject = ({
   </Flex>
 );
 
-const CreateProject = ({
+interface CreateProjectProps {
+  repoName: string;
+  setRepoName: (repoName: string) => void;
+  handleCreate: () => void;
+  loading: boolean;
+  isValidRepoToCreate: (repoName: string) => boolean;
+}
+
+const CreateProject: React.FC<CreateProjectProps> = ({
   repoName,
   setRepoName,
   handleCreate,

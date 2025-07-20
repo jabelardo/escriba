@@ -20,7 +20,6 @@ import {
 import { ChevronDown as LuChevronDown, X as LuX } from "lucide-react";
 import { useSettingsStore } from "@/store/settingsStore";
 import { fetchOpenRouterModels } from "@/lib/openrouter/models";
-import type { OpenRouterModel } from "@/types/openrouter";
 import { useAsync } from "react-use";
 
 export const FavoritesModelSelect = () => {
