@@ -86,7 +86,9 @@ const FileIcon: React.FC<{ extension?: string; className?: string }> = ({
   className = "w-4 h-4",
 }) => {
   const getIcon = () => {
-    if (!extension) return <File className={className} />;
+    if (!extension) {
+      return <File className={className} />;
+    }
 
     switch (extension.toLowerCase()) {
       case "tsx":
@@ -223,10 +225,14 @@ const FileHierarchyNavigator: React.FC<{
       // Find the selected node and call onFileSelect if provided
       const findNode = (nodes: FileNode[]): FileNode | null => {
         for (const node of nodes) {
-          if (node.id === id) return node;
+          if (node.id === id) {
+            return node;
+          }
           if (node.children) {
             const found = findNode(node.children);
-            if (found) return found;
+            if (found) {
+              return found;
+            }
           }
         }
         return null;

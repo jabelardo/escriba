@@ -58,7 +58,13 @@ export const Sidebar = () => {
       <ProjectTree />
       <Separator />
       <SettingsDialog />
-      <Button size="2" variant="ghost" onClick={() => alert("Logout")}>
+      <Button
+        size="2"
+        variant="ghost"
+        onClick={() => {
+          alert("Logout");
+        }}
+      >
         🔒 Logout
       </Button>
     </Flex>

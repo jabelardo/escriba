@@ -1,8 +1,11 @@
-
 import React from "react";
 import * as Toast from "@radix-ui/react-toast";
 import { useNotificationStore } from "@/store/notificationStore";
-import { CheckCircledIcon, CrossCircledIcon, InfoCircledIcon } from "@radix-ui/react-icons";
+import {
+  CheckCircledIcon,
+  CrossCircledIcon,
+  InfoCircledIcon,
+} from "@radix-ui/react-icons";
 
 import "./Notification.css";
 
@@ -17,13 +20,15 @@ export const NotificationProvider = () => {
   const { notifications, removeNotification } = useNotificationStore();
 
   return (
-    <Toast.Provider swipeDirection="right">
+    <Toast swipeDirection="right">
       {notifications.map(({ id, type, title, message }) => (
         <Toast.Root
           key={id}
           className="ToastRoot"
           data-type={type}
-          onOpenChange={() => removeNotification(id)}
+          onOpenChange={() => {
+            removeNotification(id);
+          }}
         >
           {typeIcons[type]}
           <Toast.Title className="ToastTitle">{title}</Toast.Title>
@@ -34,6 +39,6 @@ export const NotificationProvider = () => {
         </Toast.Root>
       ))}
       <Toast.Viewport className="ToastViewport" />
-    </Toast.Provider>
+    </Toast>
   );
 };

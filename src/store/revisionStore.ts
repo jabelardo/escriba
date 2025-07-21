@@ -22,18 +22,20 @@ export const useRevisionStore = create<RevisionState>()(
     (set, get) => ({
       revisions: {},
 
-      setRevision: (fileKey, revision) =>
+      setRevision: (fileKey, revision) => {
         set((state) => ({
           revisions: { ...state.revisions, [fileKey]: revision },
-        })),
+        }));
+      },
 
       getRevision: (fileKey) => get().revisions[fileKey] ?? null,
 
-      clearRevision: (fileKey) =>
+      clearRevision: (fileKey) => {
         set((state) => {
           const { [fileKey]: _, ...rest } = state.revisions;
           return { revisions: rest };
-        }),
+        });
+      },
 
       hasRevision: (fileKey) => fileKey in get().revisions,
     }),

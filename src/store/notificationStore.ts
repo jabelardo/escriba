@@ -1,4 +1,3 @@
-
 import { create } from "zustand";
 
 type NotificationType = "error" | "warning" | "info" | "success";
@@ -18,15 +17,17 @@ interface NotificationStore {
 
 export const useNotificationStore = create<NotificationStore>((set) => ({
   notifications: [],
-  addNotification: (notification) =>
+  addNotification: (notification) => {
     set((state) => ({
       notifications: [
         ...state.notifications,
         { ...notification, id: crypto.randomUUID() },
       ],
-    })),
-  removeNotification: (id) =>
+    }));
+  },
+  removeNotification: (id) => {
     set((state) => ({
       notifications: state.notifications.filter((n) => n.id !== id),
-    })),
+    }));
+  },
 }));

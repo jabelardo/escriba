@@ -107,7 +107,9 @@ export const PromptCombobox = ({
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [inputValue, selectedPrompt, handleInputSubmit]);
 
   // Handle keyboard navigation
@@ -158,7 +160,9 @@ export const PromptCombobox = ({
         <TextField.Root
           ref={inputRef}
           value={inputValue}
-          onChange={(e) => handleInputChange(e.target.value)}
+          onChange={(e) => {
+            handleInputChange(e.target.value);
+          }}
           onKeyDown={handleKeyDown}
           onFocus={() => {
             setIsOpen(true);
@@ -230,9 +234,9 @@ export const PromptCombobox = ({
                   backgroundColor: "var(--gray-2)",
                 }}
                 className="hover:bg-[var(--gray-4)]"
-                onClick={() =>
-                  handleSelectItem({ id: inputValue.trim(), value: "" })
-                }
+                onClick={() => {
+                  handleSelectItem({ id: inputValue.trim(), value: "" });
+                }}
               >
                 <Text size="2" color="gray">
                   New prompt: "{inputValue}"
@@ -261,7 +265,9 @@ export const PromptCombobox = ({
                       : "transparent",
                 }}
                 className="hover:bg-[var(--gray-3)]"
-                onClick={() => handleSelectItem(item)}
+                onClick={() => {
+                  handleSelectItem(item);
+                }}
               >
                 <Flex justify="between" align="center">
                   <Text size="2">{item.id}</Text>

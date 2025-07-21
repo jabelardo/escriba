@@ -6,7 +6,9 @@ export const RemoveProjectButton = () => {
       size="2"
       color="red"
       variant="ghost"
-      onClick={() => alert("Remove project")}
+      onClick={() => {
+        alert("Remove project");
+      }}
     >
       🗑️ Remove Current Project
     </Button>

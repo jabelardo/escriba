@@ -25,6 +25,8 @@ import {
   currentSelection$,
   activeEditor$,
   useCellValue,
+  realmPlugin,
+  createRootEditorSubscription$,
 } from "@mdxeditor/editor";
 import {
   $createLineBreakNode,
@@ -97,23 +99,6 @@ export const EditorPanel = () => {
       currentSelection$,
     );
 
-    useEffect(() => {
-      if (activeEditor) {
-        return activeEditor.registerNodeTransform(
-          ParagraphNode,
-          (paragraphNode: ParagraphNode) => {
-            if (paragraphNode.getKey() === activeRevision?.revisedNodeKey) {
-              for (const child of paragraphNode.getChildren()) {
-                if (child instanceof TextNode) {
-                  child.setStyle(`background-color: ${brown.brown10};`);
-                }
-              }
-            }
-          },
-        );
-      }
-    }, [activeEditor]);
-
     const handleGenerateText = async () => {
       setIsGenerating(true);
       const controller = new AbortController();
@@ -175,7 +160,9 @@ export const EditorPanel = () => {
           activeEditor.update(
             () => {
               const writeSelection = $getSelection();
-              if (!$isRangeSelection(writeSelection)) return;
+              if (!$isRangeSelection(writeSelection)) {
+                return;
+              }
               const inRevisionNodeKeys = writeSelection
                 .getNodes()
                 .map((node) => node.getKey());
@@ -183,7 +170,7 @@ export const EditorPanel = () => {
                 .getEditorState()
                 .toJSON();
 
-              const parts = `\n[->\n${revised}\n<-]\n`.split(/(\r?\n|\t)/);
+              const parts = revised.split(/(\r?\n|\t)/);
               const newNodes: LexicalNode[] = [];
               const length = parts.length;
               for (let i = 0; i < length; i++) {
@@ -260,10 +247,14 @@ export const EditorPanel = () => {
 
   const handleSaveFile = async () => {
     console.log("Saving file:", { selectedFile, token });
-    if (!selectedFile || !token) return;
+    if (!selectedFile || !token) {
+      return;
+    }
 
     const project = useProjectStore.getState().selectedProject;
-    if (!project) return;
+    if (!project) {
+      return;
+    }
 
     try {
       await saveProjectFileContent({
@@ -296,23 +287,45 @@ export const EditorPanel = () => {
     }
   };
 
+  const revisionStylePlugin = realmPlugin({
+    update(realm) {
+      realm.pub(createRootEditorSubscription$, (theEditor) => {
+        return theEditor.registerNodeTransform(
+          ParagraphNode,
+          (paragraphNode: ParagraphNode) => {
+            if (paragraphNode.getKey() === activeRevision?.revisedNodeKey) {
+              for (const child of paragraphNode.getChildren()) {
+                if (child instanceof TextNode) {
+                  child.setStyle(`background-color: ${brown.brown10};`);
+                }
+              }
+            }
+          },
+        );
+      });
+    },
+  });
+
   const ApproveRevision = () => {
     const activeEditor = useCellValue(activeEditor$);
     const handleApproveRevision = () => {
-      const markdown = useProjectStore.getState().selectedFile?.content;
-      if (!markdown || !activeRevision || !activeEditor) return;
+      if (!activeRevision || !activeEditor) {
+        return;
+      }
       activeEditor?.update(() => {
         activeRevision.inRevisionNodeKeys.forEach((key) => {
-          const node = $getNodeByKey(key);
-          if (node && activeRevision.inRevisionNodeKeys.includes(key)) {
-            node.remove();
-          }
+          const inRevisionNode = $getNodeByKey(key);
+          inRevisionNode?.remove();
         });
+        const revisedNode = $getNodeByKey(activeRevision.revisedNodeKey);
+        if (revisedNode instanceof ParagraphNode) {
+          for (const child of revisedNode.getChildren()) {
+            if (child instanceof TextNode) {
+              child.setStyle(`background-color: black;`);
+            }
+          }
+        }
       });
-
-      // TODO: this is very naive and it left a \ character at each replacement point
-      const newContent = markdown.replace("[->", "").replace("<-]", "");
-      useProjectStore.getState().setSelectedFileContent(newContent);
       useRevisionStore.getState().clearRevision(selectedFileId);
     };
 
@@ -329,7 +342,9 @@ export const EditorPanel = () => {
   const RejectRevision = () => {
     const activeEditor = useCellValue(activeEditor$);
     const handleRejectRevision = () => {
-      if (!activeRevision) return;
+      if (!activeRevision) {
+        return;
+      }
       activeEditor?.update(() => {
         const original = activeEditor.parseEditorState(
           activeRevision.previousEditorState,
@@ -362,6 +377,7 @@ export const EditorPanel = () => {
           tablePlugin(),
           thematicBreakPlugin(),
           markdownShortcutPlugin(), // you need the corresponding plugins for the markdown blocks listed before markdownShortcutPlugin() to enable support.
+          revisionStylePlugin(),
           toolbarPlugin({
             toolbarContents: () => (
               <>

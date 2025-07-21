@@ -161,8 +161,11 @@ export const ProjectTree = () => {
   const toggleContext = useCallback((fileId: string) => {
     setContextFiles((prev) => {
       const next = new Set(prev);
-      if (next.has(fileId)) next.delete(fileId);
-      else next.add(fileId);
+      if (next.has(fileId)) {
+        next.delete(fileId);
+      } else {
+        next.add(fileId);
+      }
       console.log({ prev, next });
       return next;
     });
@@ -186,7 +189,9 @@ export const ProjectTree = () => {
   }, []);
 
   const handleCreateFile = async (filename: string) => {
-    if (!selectedProject || !token || !currentNode) return;
+    if (!selectedProject || !token || !currentNode) {
+      return;
+    }
 
     const path =
       currentNode === "ROOT" ? filename : `${currentNode}/${filename}`;
@@ -211,7 +216,9 @@ export const ProjectTree = () => {
 
   const onFileSelect = useCallback(
     async (filePath: string) => {
-      if (!selectedProject || !token) return;
+      if (!selectedProject || !token) {
+        return;
+      }
       const content = await fetchProjectFileContent(
         token,
         selectedProject.owner,
@@ -237,7 +244,9 @@ export const ProjectTree = () => {
 
   useEffect(() => {
     const load = async () => {
-      if (!selectedProject || !token) return;
+      if (!selectedProject || !token) {
+        return;
+      }
       await fetchFileTree(token, selectedProject.owner, selectedProject.repo);
       // Auto-expand root
       setExpandedNodes(new Set(["ROOT"]));
@@ -246,7 +255,9 @@ export const ProjectTree = () => {
   }, [selectedProject, token, fetchFileTree]);
 
   const renderTree = useMemo(() => {
-    if (!rootNode || !rootNode.children) return null;
+    if (!rootNode || !rootNode.children) {
+      return null;
+    }
 
     return rootNode.children.map((node) => (
       <TreeNode
@@ -288,7 +299,9 @@ export const ProjectTree = () => {
       {renderTree}
       <CreateFileDialog
         isOpen={isCreateFileDialogOpen}
-        onClose={() => setCreateFileDialogOpen(false)}
+        onClose={() => {
+          setCreateFileDialogOpen(false);
+        }}
         onCreate={handleCreateFile}
       />
     </Flex>

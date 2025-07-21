@@ -19,29 +19,31 @@
   background-color: white;
   border-radius: 6px;
   border: 1px solid var(--gray-a6);
-  box-shadow: hsl(206 22% 7% / 35%) 0px 10px 38px -10px, hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
+  box-shadow:
+    hsl(206 22% 7% / 35%) 0px 10px 38px -10px,
+    hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
   padding: 16px;
   display: grid;
-  grid-template-areas: 'icon title action' 'icon description action';
+  grid-template-areas: "icon title action" "icon description action";
   grid-template-columns: auto auto max-content;
   column-gap: 15px;
   align-items: center;
 }
 
-.ToastRoot[data-state='open'] {
+.ToastRoot[data-state="open"] {
   animation: slideIn 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-.ToastRoot[data-state='closed'] {
+.ToastRoot[data-state="closed"] {
   animation: hide 100ms ease-in;
 }
-.ToastRoot[data-swipe='move'] {
+.ToastRoot[data-swipe="move"] {
   transform: translateX(var(--radix-toast-swipe-move-x));
 }
-.ToastRoot[data-swipe='cancel'] {
+.ToastRoot[data-swipe="cancel"] {
   transform: translateX(0);
   transition: transform 200ms ease-out;
 }
-.ToastRoot[data-swipe='end'] {
+.ToastRoot[data-swipe="end"] {
   animation: swipeOut 100ms ease-out;
 }
 
@@ -89,62 +91,61 @@
 }
 
 .ToastIcon {
-    grid-area: icon;
+  grid-area: icon;
 }
 
-.ToastRoot[data-type='success'] {
+.ToastRoot[data-type="success"] {
   background-color: var(--green-2);
   border-color: var(--green-6);
 }
-.ToastRoot[data-type='success'] .ToastTitle {
+.ToastRoot[data-type="success"] .ToastTitle {
   color: var(--green-12);
 }
-.ToastRoot[data-type='success'] .ToastDescription {
+.ToastRoot[data-type="success"] .ToastDescription {
   color: var(--green-11);
 }
-.ToastRoot[data-type='success'] .ToastIcon {
+.ToastRoot[data-type="success"] .ToastIcon {
   color: var(--green-11);
 }
 
-
-.ToastRoot[data-type='error'] {
+.ToastRoot[data-type="error"] {
   background-color: var(--red-2);
   border-color: var(--red-6);
 }
-.ToastRoot[data-type='error'] .ToastTitle {
+.ToastRoot[data-type="error"] .ToastTitle {
   color: var(--red-12);
 }
-.ToastRoot[data-type='error'] .ToastDescription {
+.ToastRoot[data-type="error"] .ToastDescription {
   color: var(--red-11);
 }
-.ToastRoot[data-type='error'] .ToastIcon {
+.ToastRoot[data-type="error"] .ToastIcon {
   color: var(--red-11);
 }
 
-.ToastRoot[data-type='warning'] {
-    background-color: var(--amber-2);
-    border-color: var(--amber-6);
+.ToastRoot[data-type="warning"] {
+  background-color: var(--amber-2);
+  border-color: var(--amber-6);
 }
-.ToastRoot[data-type='warning'] .ToastTitle {
-    color: var(--amber-12);
+.ToastRoot[data-type="warning"] .ToastTitle {
+  color: var(--amber-12);
 }
-.ToastRoot[data-type='warning'] .ToastDescription {
-    color: var(--amber-11);
+.ToastRoot[data-type="warning"] .ToastDescription {
+  color: var(--amber-11);
 }
-.ToastRoot[data-type='warning'] .ToastIcon {
-    color: var(--amber-11);
+.ToastRoot[data-type="warning"] .ToastIcon {
+  color: var(--amber-11);
 }
 
-.ToastRoot[data-type='info'] {
-    background-color: var(--blue-2);
-    border-color: var(--blue-6);
+.ToastRoot[data-type="info"] {
+  background-color: var(--blue-2);
+  border-color: var(--blue-6);
 }
-.ToastRoot[data-type='info'] .ToastTitle {
-    color: var(--blue-12);
+.ToastRoot[data-type="info"] .ToastTitle {
+  color: var(--blue-12);
 }
-.ToastRoot[data-type='info'] .ToastDescription {
-    color: var(--blue-11);
+.ToastRoot[data-type="info"] .ToastDescription {
+  color: var(--blue-11);
 }
-.ToastRoot[data-type='info'] .ToastIcon {
-    color: var(--blue-11);
+.ToastRoot[data-type="info"] .ToastIcon {
+  color: var(--blue-11);
 }

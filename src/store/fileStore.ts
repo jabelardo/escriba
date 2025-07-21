@@ -9,7 +9,9 @@ interface FileStore {
 
 export const useFileStore = create<FileStore>((set) => ({
   fileTree: null,
-  setFileTree: (fileTree) => set({ fileTree }),
+  setFileTree: (fileTree) => {
+    set({ fileTree });
+  },
   fetchFileTree: async (token, owner, repo) => {
     const { fetchProjectFileTree } = await import("@/lib/github/filetree");
     const fileTree = await fetchProjectFileTree(token, owner, repo);

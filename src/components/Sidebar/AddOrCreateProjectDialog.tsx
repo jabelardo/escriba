@@ -35,7 +35,9 @@ const AddExistingProject: React.FC<AddExistingProjectProps> = ({
       <TextField.Root
         placeholder="owner/repo or GitHub URL"
         value={input}
-        onChange={(e) => setInput(e.target.value)}
+        onChange={(e) => {
+          setInput(e.target.value);
+        }}
       />
 
       <Button
@@ -49,7 +51,9 @@ const AddExistingProject: React.FC<AddExistingProjectProps> = ({
     </Flex>
     <Dialog.Root
       open={openMissingFoldersDialog}
-      onOpenChange={(e) => setOpenMissingFoldersDialog(e)}
+      onOpenChange={(e) => {
+        setOpenMissingFoldersDialog(e);
+      }}
     >
       <Dialog.Content>
         <Dialog.Title>Create missing folders?</Dialog.Title>
@@ -111,7 +115,9 @@ const CreateProject: React.FC<CreateProjectProps> = ({
       <TextField.Root
         placeholder="New repository name"
         value={repoName}
-        onChange={(e) => setRepoName(e.target.value)}
+        onChange={(e) => {
+          setRepoName(e.target.value);
+        }}
       />
       <Button
         color="teal"
@@ -155,7 +161,9 @@ const AddOrCreateProjectDialog = () => {
 
   const parseOwnerRepo = (v: string) => {
     const m = v.match(/github\.com\/([^/]+)\/([^/]+)/);
-    if (m) return [m[1], m[2]];
+    if (m) {
+      return [m[1], m[2]];
+    }
     const parts = v.split("/");
     return parts.length === 2 ? [parts[0], parts[1]] : null;
   };
@@ -240,11 +248,15 @@ const AddOrCreateProjectDialog = () => {
   };
 
   const handleCreateFolders = async () => {
-    if (!token) return;
+    if (!token) {
+      return;
+    }
     const [owner, repo] = parseOwnerRepo(input.trim())!;
     setLoading(true);
     try {
-      for (const f of missing) await createGitkeep(owner, repo, f);
+      for (const f of missing) {
+        await createGitkeep(owner, repo, f);
+      }
       addProject({ owner, repo });
       errorToast(
         `${owner}/${repo} has been added successfully.`,
@@ -357,7 +369,7 @@ const AddOrCreateProjectDialog = () => {
         </Dialog.Content>
       </Dialog.Root>
       <Portal.Root>
-        <Toast.Provider duration={5000}>
+        <Toast duration={5000}>
           <Toast.Root type="background">
             <Toast.Title>Saved!</Toast.Title>
             <Toast.Description>Saved!</Toast.Description>
@@ -366,7 +378,7 @@ const AddOrCreateProjectDialog = () => {
             </Toast.Close>
           </Toast.Root>
           <Toast.Viewport />
-        </Toast.Provider>
+        </Toast>
       </Portal.Root>
     </>
   );

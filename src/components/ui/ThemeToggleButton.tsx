@@ -6,16 +6,22 @@ export const ThemeToggleButton = () => {
   const { setTheme, resolvedTheme } = useTheme();
 
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return null;
+  }
 
   const isDark = resolvedTheme === "dark";
 
   return (
     <Button
       variant="soft"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      onClick={() => {
+        setTheme(isDark ? "light" : "dark");
+      }}
       aria-label="Toggle theme"
     >
       {isDark ? "🌙 Dark" : "☀️ Light"}

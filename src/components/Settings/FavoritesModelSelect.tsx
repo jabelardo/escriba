@@ -44,7 +44,9 @@ export const FavoritesModelSelect = () => {
 
   // Filter models based on search term
   const filteredModels = useMemo(() => {
-    if (!state.value) return [];
+    if (!state.value) {
+      return [];
+    }
     const models = !searchTerm.trim()
       ? state.value
       : state.value.filter(
@@ -53,8 +55,8 @@ export const FavoritesModelSelect = () => {
             model.id.toLowerCase().includes(searchTerm.toLowerCase()),
         );
     const sorted = [...models].sort((a, b) => {
-      const nameA = `${a.name}`.toLowerCase();
-      const nameB = `${b.name}`.toLowerCase();
+      const nameA = a.name.toLowerCase();
+      const nameB = b.name.toLowerCase();
       return nameA.localeCompare(nameB);
     });
     return sorted;
@@ -62,7 +64,9 @@ export const FavoritesModelSelect = () => {
 
   // Get selected models for display
   const selectedModels = useMemo(() => {
-    if (!state.value) return [];
+    if (!state.value) {
+      return [];
+    }
     return state.value.filter((model) => favoriteModels.includes(model.id));
   }, [state.value, favoriteModels]);
 
@@ -96,7 +100,9 @@ export const FavoritesModelSelect = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   // Handle keyboard navigation
@@ -133,7 +139,9 @@ export const FavoritesModelSelect = () => {
       <Button
         variant="outline"
         size="2"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          setIsOpen(!isOpen);
+        }}
         onKeyDown={handleKeyDown}
         style={{
           width: "100%",
@@ -183,7 +191,9 @@ export const FavoritesModelSelect = () => {
                       asChild
                       variant="ghost"
                       size="2"
-                      onClick={(e) => handleRemoveModel(model.id, e)}
+                      onClick={(e) => {
+                        handleRemoveModel(model.id, e);
+                      }}
                       style={{
                         padding: "4px",
                       }}
@@ -232,7 +242,9 @@ export const FavoritesModelSelect = () => {
             placeholder="Search models..."
             size="2"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+            }}
           >
             <TextField.Slot>
               <LuSearch height="16" width="16" />
@@ -242,8 +254,11 @@ export const FavoritesModelSelect = () => {
                 size="1"
                 variant="ghost"
                 onClick={() => {
-                  if (searchTerm.length) setSearchTerm("");
-                  else setIsOpen(false);
+                  if (searchTerm.length) {
+                    setSearchTerm("");
+                  } else {
+                    setIsOpen(false);
+                  }
                 }}
               >
                 <LuX height="14" width="14" />

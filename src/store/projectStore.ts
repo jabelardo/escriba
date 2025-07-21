@@ -52,7 +52,9 @@ export const useProjectStore = create<ProjectStore>()(
       },
       setSelectedBranch: (branch) => {
         const { selectedProject, projects } = get();
-        if (!selectedProject) return;
+        if (!selectedProject) {
+          return;
+        }
         const updatedProjects = projects.map((p) =>
           p.owner === selectedProject.owner && p.repo === selectedProject.repo
             ? { ...p, branch: branch }
@@ -71,21 +73,31 @@ export const useProjectStore = create<ProjectStore>()(
           ),
         }));
       },
-      clearProjects: () => set({ projects: [] }),
-      setSelectedFile: (projectFile) => set({ selectedFile: projectFile }),
+      clearProjects: () => {
+        set({ projects: [] });
+      },
+      setSelectedFile: (projectFile) => {
+        set({ selectedFile: projectFile });
+      },
       setSelectedFileContent: (content) => {
         const { selectedFile } = get();
-        if (!selectedFile) return;
+        if (!selectedFile) {
+          return;
+        }
         set({ selectedFile: { ...selectedFile, content: content } });
       },
       setSelectedFileSha: (sha) => {
         const { selectedFile } = get();
-        if (!selectedFile) return;
+        if (!selectedFile) {
+          return;
+        }
         set({ selectedFile: { ...selectedFile, sha: sha } });
       },
       setSelectedModel: (model) => {
         const { selectedProject, projects } = get();
-        if (!selectedProject) return;
+        if (!selectedProject) {
+          return;
+        }
         const updatedProjects = projects.map((p) =>
           p.owner === selectedProject.owner && p.repo === selectedProject.repo
             ? { ...p, model: model }

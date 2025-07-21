@@ -37,7 +37,9 @@ export const CreateFileDialog: React.FC<CreateFileDialogProps> = ({
             </Text>
             <TextField.Root
               value={filename}
-              onChange={(e) => setFilename(e.target.value)}
+              onChange={(e) => {
+                setFilename(e.target.value);
+              }}
               placeholder="e.g., new-file.txt"
             />
           </label>

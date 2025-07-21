@@ -22,8 +22,8 @@ export const PromptSelector = ({
   const selected = collection.find((i) => i.id === selectedPrompt?.id);
 
   const sorted = [...collection].sort((a, b) => {
-    const nameA = `${a.id}`.toLowerCase();
-    const nameB = `${b.id}`.toLowerCase();
+    const nameA = a.id.toLowerCase();
+    const nameB = b.id.toLowerCase();
     return nameA.localeCompare(nameB);
   });
 
@@ -32,7 +32,9 @@ export const PromptSelector = ({
       value={selected?.id || ""}
       onValueChange={(v) => {
         const prompt = v ? sorted.find((i) => i.id === v) : undefined;
-        if (prompt) onChange(prompt);
+        if (prompt) {
+          onChange(prompt);
+        }
       }}
       size="2"
       flex-grow="1"

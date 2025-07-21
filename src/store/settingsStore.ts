@@ -37,15 +37,24 @@ export const useSettingsStore = create<SettingsStore>()(
       activeSystemPrompt: undefined,
       activeContinuePrompt: undefined,
       activeRevisePrompt: undefined,
-      setOpenrouterKey: (openrouterKey) => set({ openrouterKey }),
-      setGithubToken: (githubToken) => set({ githubToken }),
-      setFavoriteModels: (favoriteModels) => set({ favoriteModels }),
-      setActiveSystemPrompt: (activeSystemPrompt) =>
-        set({ activeSystemPrompt }),
-      setActiveContinuePrompt: (activeContinuePrompt) =>
-        set({ activeContinuePrompt }),
-      setActiveRevisePrompt: (activeRevisePrompt) =>
-        set({ activeRevisePrompt }),
+      setOpenrouterKey: (openrouterKey) => {
+        set({ openrouterKey });
+      },
+      setGithubToken: (githubToken) => {
+        set({ githubToken });
+      },
+      setFavoriteModels: (favoriteModels) => {
+        set({ favoriteModels });
+      },
+      setActiveSystemPrompt: (activeSystemPrompt) => {
+        set({ activeSystemPrompt });
+      },
+      setActiveContinuePrompt: (activeContinuePrompt) => {
+        set({ activeContinuePrompt });
+      },
+      setActiveRevisePrompt: (activeRevisePrompt) => {
+        set({ activeRevisePrompt });
+      },
       updateSystemPrompts: (prompt) => {
         set((state) => ({
           systemPrompts: addOrUpdatePrompt(prompt, state.systemPrompts),

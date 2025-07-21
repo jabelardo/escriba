@@ -91,7 +91,9 @@ export const SettingsPanel = () => {
         <TextField.Root
           type="password"
           value={openrouterKey}
-          onChange={(e) => setOpenrouterKey(e.target.value)}
+          onChange={(e) => {
+            setOpenrouterKey(e.target.value);
+          }}
         />
       </label>
       <label>
@@ -101,7 +103,9 @@ export const SettingsPanel = () => {
         <TextField.Root
           type="password"
           value={githubToken}
-          onChange={(e) => setGithubToken(e.target.value)}
+          onChange={(e) => {
+            setGithubToken(e.target.value);
+          }}
         />
       </label>
     </Flex>

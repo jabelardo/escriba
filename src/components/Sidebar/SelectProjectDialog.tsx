@@ -17,11 +17,22 @@ export const SelectProjectDialog = () => {
 
   return (
     <>
-      <Button size="2" variant="ghost" onClick={() => setOpen(true)}>
+      <Button
+        size="2"
+        variant="ghost"
+        onClick={() => {
+          setOpen(true);
+        }}
+      >
         Select Project
       </Button>
 
-      <Dialog.Root open={open} onOpenChange={(e) => setOpen(e)}>
+      <Dialog.Root
+        open={open}
+        onOpenChange={(e) => {
+          setOpen(e);
+        }}
+      >
         <Dialog.Content>
           <Dialog.Title>Select a Project</Dialog.Title>
           <Dialog.Description />
@@ -43,7 +54,12 @@ export const SelectProjectDialog = () => {
           </Flex>
           <Flex gap="3" mt="4" justify="end">
             <Dialog.Close>
-              <Button variant="outline" onClick={() => setOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setOpen(false);
+                }}
+              >
                 Cancel
               </Button>
             </Dialog.Close>
