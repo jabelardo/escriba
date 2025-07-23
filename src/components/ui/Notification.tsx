@@ -1,5 +1,4 @@
-import React from "react";
-import * as Toast from "@radix-ui/react-toast";
+import { Toast } from "radix-ui";
 import { useNotificationStore } from "@/store/notificationStore";
 import {
   CheckCircledIcon,
@@ -20,7 +19,7 @@ export const NotificationProvider = () => {
   const { notifications, removeNotification } = useNotificationStore();
 
   return (
-    <Toast swipeDirection="right">
+    <Toast.Provider swipeDirection="right">
       {notifications.map(({ id, type, title, message }) => (
         <Toast.Root
           key={id}
@@ -39,6 +38,6 @@ export const NotificationProvider = () => {
         </Toast.Root>
       ))}
       <Toast.Viewport className="ToastViewport" />
-    </Toast>
+    </Toast.Provider>
   );
 };

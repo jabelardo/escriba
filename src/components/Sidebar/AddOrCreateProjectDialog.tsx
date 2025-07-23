@@ -1,9 +1,9 @@
 import { Flex, Text, Button, Dialog, TextField } from "@radix-ui/themes";
-import { Toast, Portal } from "radix-ui";
 import { useState } from "react";
 import { Octokit } from "@octokit/rest";
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
+import { useNotificationStore } from "@/store/notificationStore";
 
 interface AddExistingProjectProps {
   input: string;
@@ -135,6 +135,7 @@ const AddOrCreateProjectDialog = () => {
   const token = useAuthStore((s) => s.githubToken);
   const addProject = useProjectStore((s) => s.addProject);
   const projects = useProjectStore((s) => s.projects);
+  const { addNotification } = useNotificationStore();
 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -196,14 +197,16 @@ const AddOrCreateProjectDialog = () => {
 
   const handleAdd = async () => {
     setLoading(true);
+
     const pr = parseOwnerRepo(input.trim());
     if (!pr) {
-      errorCallout("Invalid repo format: owner/repo or GitHub URL");
+      console.log("Invalid repo format: owner/repo or GitHub URL");
       setLoading(false);
       return;
     }
 
     const [owner, repo] = pr;
+
     try {
       await octokit.rest.repos.get({ owner, repo });
     } catch (err: any) {
@@ -211,7 +214,11 @@ const AddOrCreateProjectDialog = () => {
       const errorMessage = err?.response?.data?.message
         ? err?.response?.data?.message + `: ${owner}/${repo}`
         : "Unknown GitHub error";
-      errorCallout(errorMessage);
+      addNotification({
+        type: "error",
+        title: "Project GitHub read failed",
+        message: errorMessage,
+      });
       setLoading(false);
       return;
     }
@@ -231,17 +238,20 @@ const AddOrCreateProjectDialog = () => {
           p.repo.toLowerCase() === normalized.repo,
       );
       if (exists) {
-        warningToast(
-          `${owner}/${repo} is already registered.`,
-          "Project already added",
-        );
+        addNotification({
+          type: "warning",
+          title: "Project already exists",
+          message: `${owner}/${repo} is already registered.`,
+        });
       } else {
         addProject({ owner, repo });
-        errorToast(
-          `${owner}/${repo} has been added successfully.`,
-          "Project added",
-        );
+        addNotification({
+          type: "success",
+          title: "Project added",
+          message: `${owner}/${repo} has been added successfully.`,
+        });
       }
+
       setInput("");
     }
     setLoading(false);
@@ -258,40 +268,27 @@ const AddOrCreateProjectDialog = () => {
         await createGitkeep(owner, repo, f);
       }
       addProject({ owner, repo });
-      errorToast(
-        `${owner}/${repo} has been added successfully.`,
-        "Project added",
-      );
+      addNotification({
+        type: "success",
+        title: "Folder creation successful",
+        message: `Folders ${missing.join(", ")} have been created successfully.`,
+      });
       setMissing([]);
       setOpenMissingFoldersDialog(false);
       setInput("");
     } catch (e: any) {
-      errorCallout("Failed to create folders: " + e.message);
+      addNotification({
+        type: "error",
+        title: "Folder creation failed",
+        message: e?.response?.data?.message || e.message || "Unknown error",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const errorCallout = (arg0: string) => {
-    // throw new Error("Function not implemented.")
-  };
-
-  const warningToast = (arg0: string, arg1: string | undefined = undefined) => {
-    //throw new Error("Function not implemented.")
-  };
-
-  const errorToast = (arg0: string, arg1: string | undefined = undefined) => {
-    //throw new Error("Function not implemented.")
-  };
-
   const handleCreate = async () => {
     setLoading(true);
-
-    if (!isValidRepoToCreate(repoName)) {
-      errorToast("Invalid repository name");
-      setLoading(false);
-      return;
-    }
 
     try {
       // Get user info to determine repo owner
@@ -319,11 +316,21 @@ const AddOrCreateProjectDialog = () => {
       }
 
       addProject({ owner, repo: repo });
-      //successToast(`${owner}/${repo} created and initialized successfully.`, 'Project created')
+      addNotification({
+        type: "success",
+        title: "Project created",
+        message: `${owner}/${repo} has been created and initialized successfully.`,
+      });
       setRepoName("");
     } catch (e: any) {
-      console.log("Repo creation failed", e);
-      //errorToast(e?.response?.data?.errors?.[0]?.message || e.message || 'Unknown error')
+      addNotification({
+        type: "error",
+        title: "Project creation failed",
+        message:
+          e?.response?.data?.errors?.[0]?.message ||
+          e.message ||
+          "Unknown error",
+      });
     }
 
     setLoading(false);
@@ -368,18 +375,6 @@ const AddOrCreateProjectDialog = () => {
           </Flex>
         </Dialog.Content>
       </Dialog.Root>
-      <Portal.Root>
-        <Toast duration={5000}>
-          <Toast.Root type="background">
-            <Toast.Title>Saved!</Toast.Title>
-            <Toast.Description>Saved!</Toast.Description>
-            <Toast.Close aria-label="Close">
-              <span aria-hidden>×</span>
-            </Toast.Close>
-          </Toast.Root>
-          <Toast.Viewport />
-        </Toast>
-      </Portal.Root>
     </>
   );
 };
