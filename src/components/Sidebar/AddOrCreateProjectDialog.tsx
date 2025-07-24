@@ -1,6 +1,7 @@
 import { Flex, Text, Button, Dialog, TextField } from "@radix-ui/themes";
 import { useState } from "react";
 import { Octokit } from "@octokit/rest";
+//import type { RequestError } from "@octokit/types";
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -166,7 +167,7 @@ const AddOrCreateProjectDialog = () => {
       return [m[1], m[2]];
     }
     const parts = v.split("/");
-    return parts.length === 2 ? [parts[0], parts[1]] : null;
+    return parts.length === 2 ? [parts[0], parts[1]] : [];
   };
 
   const checkFolders = async (owner: string, repo: string) => {
@@ -199,7 +200,7 @@ const AddOrCreateProjectDialog = () => {
     setLoading(true);
 
     const pr = parseOwnerRepo(input.trim());
-    if (!pr) {
+    if (pr.length !== 2) {
       console.log("Invalid repo format: owner/repo or GitHub URL");
       setLoading(false);
       return;
@@ -261,7 +262,11 @@ const AddOrCreateProjectDialog = () => {
     if (!token) {
       return;
     }
-    const [owner, repo] = parseOwnerRepo(input.trim())!;
+    const pr = parseOwnerRepo(input.trim());
+    if (pr.length !== 2) {
+      return;
+    }
+    const [owner, repo] = pr;
     setLoading(true);
     try {
       for (const f of missing) {

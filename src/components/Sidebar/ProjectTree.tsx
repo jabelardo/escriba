@@ -275,13 +275,14 @@ export const ProjectTree = () => {
     ));
   }, [
     rootNode,
+    TreeNode,
     expandedNodes,
     selectedNode,
     contextFiles,
     toggleNode,
-    selectNode,
     toggleContext,
     createFile,
+    selectNode,
   ]);
 
   if (!selectedProject) {

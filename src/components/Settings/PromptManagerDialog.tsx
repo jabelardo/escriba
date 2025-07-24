@@ -14,8 +14,8 @@ export const PromptManagerDialog = ({
   prompts: Prompt[];
   updatePrompts: (prompt: Prompt) => void;
 }) => {
-  const [promptId, setPromtId] = useState("");
-  const [promtValue, setPromtValue] = useState("");
+  const [promptId, setPromptId] = useState("");
+  const [promptValue, setPromptValue] = useState("");
 
   return (
     <Dialog.Root flex-grow="1">
@@ -31,11 +31,11 @@ export const PromptManagerDialog = ({
           <PromptCombobox
             label="Name"
             items={prompts}
-            selectedPrompt={{ id: promptId, value: promtValue }}
-            onChange={(promt) => {
-              console.log(promt);
-              setPromtId(promt.id);
-              setPromtValue(promt.value);
+            selectedPrompt={{ id: promptId, value: promptValue }}
+            onChange={(prompt) => {
+              console.log(prompt);
+              setPromptId(prompt.id);
+              setPromptValue(prompt.value);
             }}
           />
           <Text as="div" size="2" mb="1" weight="bold">
@@ -43,9 +43,9 @@ export const PromptManagerDialog = ({
           </Text>
           <TextArea
             placeholder="Prompt content..."
-            value={promtValue}
+            value={promptValue}
             onChange={(e) => {
-              setPromtValue(e.target.value);
+              setPromptValue(e.target.value);
             }}
           />
         </Flex>
@@ -58,10 +58,10 @@ export const PromptManagerDialog = ({
           <Dialog.Close>
             <Button
               onClick={() => {
-                console.log(promptId, promtValue);
-                updatePrompts({ id: promptId, value: promtValue });
+                console.log(promptId, promptValue);
+                updatePrompts({ id: promptId, value: promptValue });
               }}
-              disabled={!promptId || !promtValue}
+              disabled={!promptId || !promptValue}
             >
               Save Prompt
             </Button>

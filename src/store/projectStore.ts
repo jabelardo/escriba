@@ -20,7 +20,7 @@ interface ProjectStore {
   selectedBranch?: string;
   selectedFile?: ProjectFile;
   addProject: (project: Project) => void;
-  removeProject: (owner: string, repo: string) => void;
+  removeProject: (project: Project) => void;
   clearProjects: () => void;
   selectProject: (project: Project) => void;
   setSelectedBranch: (branch: string) => void;
@@ -66,11 +66,9 @@ export const useProjectStore = create<ProjectStore>()(
           selectedProject: { ...selectedProject, branch: branch },
         });
       },
-      removeProject: (owner, repo) => {
+      removeProject: (project) => {
         set((state) => ({
-          projects: state.projects.filter(
-            (p) => !(p.owner === owner && p.repo === repo),
-          ),
+          projects: state.projects.filter((p) => !(p === project)),
         }));
       },
       clearProjects: () => {

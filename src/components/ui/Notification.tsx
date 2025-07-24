@@ -19,6 +19,7 @@ export const NotificationProvider = () => {
   const { notifications, removeNotification } = useNotificationStore();
 
   return (
+    // eslint-disable-next-line react-x/no-context-provider
     <Toast.Provider swipeDirection="right">
       {notifications.map(({ id, type, title, message }) => (
         <Toast.Root

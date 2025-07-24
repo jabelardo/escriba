@@ -38,7 +38,7 @@ export const FavoritesModelSelect = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const state = useAsync(
-    () => fetchOpenRouterModels(import.meta.env.VITE_OPENROUTER_KEY),
+    () => fetchOpenRouterModels(import.meta.env.VITE_OPENROUTER_KEY as string),
     [],
   );
 
@@ -75,7 +75,7 @@ export const FavoritesModelSelect = () => {
     (newFavorites: string[]) => {
       setFavoriteModels(newFavorites);
     },
-    [favoriteModels, setFavoriteModels],
+    [setFavoriteModels],
   );
 
   // Handle removing a selected model
@@ -287,7 +287,7 @@ export const FavoritesModelSelect = () => {
                 }}
               >
                 {filteredModels.map((model) => (
-                  <CheckboxGroup.Item value={model.id}>
+                  <CheckboxGroup.Item value={model.id} key={model.id}>
                     {model.name}
                   </CheckboxGroup.Item>
                 ))}

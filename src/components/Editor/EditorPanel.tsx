@@ -78,13 +78,13 @@ export const EditorPanel = () => {
 
   const originalMarkdownRef = useRef(markdownContent);
 
-  const selectedFileId = `${useProjectStore.getState().selectedProject?.repo}/${selectedFile?.filePath}`;
+  const selectedFileId = `${useProjectStore.getState().selectedProject?.repo || ""}/${selectedFile?.filePath || ""}`;
   const activeRevision = useRevisionStore((s) => s.revisions[selectedFileId]);
 
   useEffect(() => {
     originalMarkdownRef.current = markdownContent;
     setIsFileChanged(false);
-  }, [selectedFile?.filePath]);
+  }, [markdownContent, selectedFile?.filePath]);
 
   useEffect(() => {
     if (markdownContent && mdxEditorRef.current) {

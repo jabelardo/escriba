@@ -1,4 +1,3 @@
-// lib/openrouter/chat.ts
 import type { OpenRouterMessage } from "@/types/openrouter";
 
 export interface ChatCompletionParams {

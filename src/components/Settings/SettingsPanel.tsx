@@ -32,7 +32,7 @@ export const SettingsPanel = () => {
 
       <label>
         <Text as="div" size="2" mb="1" weight="bold">
-          Current System Promp
+          Current System Prompt
         </Text>
         <Flex direction="row" gap="3" align={"center"} width={"100%"}>
           <PromptSelector
@@ -50,7 +50,7 @@ export const SettingsPanel = () => {
       </label>
       <label>
         <Text as="div" size="2" mb="1" weight="bold">
-          Current Continue Promp
+          Current Continue Prompt
         </Text>
         <Flex direction="row" gap="3" align={"center"} width={"100%"}>
           <PromptSelector
@@ -68,7 +68,7 @@ export const SettingsPanel = () => {
       </label>
       <label>
         <Text as="div" size="2" mb="1" weight="bold">
-          Current Revise Promp
+          Current Revise Prompt
         </Text>
         <Flex direction="row" gap="3" align={"center"} width={"100%"}>
           <PromptSelector

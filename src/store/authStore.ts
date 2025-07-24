@@ -14,7 +14,7 @@ interface AuthStore {
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
-      githubToken: import.meta.env.VITE_GITHUB_TOKEN || null,
+      githubToken: (import.meta.env.VITE_GITHUB_TOKEN as string) || null,
       setGithubToken: (token) => {
         set({ githubToken: token });
       },
@@ -22,7 +22,7 @@ export const useAuthStore = create<AuthStore>()(
         set({ githubToken: null });
       },
 
-      openrouterKey: import.meta.env.VITE_OPENROUTER_KEY || null,
+      openrouterKey: (import.meta.env.VITE_OPENROUTER_KEY as string) || null,
       setOpenrouterKey: (key) => {
         set({ openrouterKey: key });
       },

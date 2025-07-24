@@ -11,17 +11,17 @@ import { NotificationProvider } from "./ui/Notification";
 export const Layout = () => {
   return (
     <>
-      <Flex height="100vh" overflow="hidden" direction="row">
-        <ErrorBoundary>
+      <ErrorBoundary>
+        <Flex height="100vh" overflow="hidden" direction="row">
           <Sidebar />
           <RealmProvider>
             <EditorPanel />
           </RealmProvider>
-        </ErrorBoundary>
-      </Flex>
-      <Portal>
-        <NotificationProvider />
-      </Portal>
+        </Flex>
+        <Portal>
+          <NotificationProvider />
+        </Portal>
+      </ErrorBoundary>
     </>
   );
 };

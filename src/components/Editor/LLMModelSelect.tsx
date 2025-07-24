@@ -13,7 +13,7 @@ export const LLMModelSelect = () => {
   const favoriteModels = useSettingsStore((s) => s.favoriteModels);
 
   const state = useAsync(
-    () => fetchOpenRouterModels(import.meta.env.VITE_OPENROUTER_KEY),
+    () => fetchOpenRouterModels(import.meta.env.VITE_OPENROUTER_KEY as string),
     [],
   );
 

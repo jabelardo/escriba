@@ -1,13 +1,18 @@
 import { Octokit } from "@octokit/rest";
 import { useProjectStore } from "@/store/projectStore";
 
+export interface FileContent {
+  content: string;
+  sha: string;
+}
+
 export async function fetchProjectFileContent(
   auth: string,
   owner: string,
   repo: string,
   path: string,
   branch = "main",
-): Promise<any> {
+): Promise<FileContent> {
   const octokit = new Octokit({ auth });
   const res = await octokit.repos.getContent({
     owner,
@@ -22,11 +27,12 @@ export async function fetchProjectFileContent(
 
   const decoded = atob(res.data.content);
   const content = new TextDecoder("utf-8").decode(
+    // eslint-disable-next-line @typescript-eslint/no-misused-spread
     Uint8Array.from([...decoded].map((char) => char.charCodeAt(0))),
   );
 
   return {
-    content: content ?? "",
+    content: content,
     sha: res.data.sha,
   };
 }
