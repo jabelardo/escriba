@@ -39,6 +39,7 @@ import {
   $isRangeSelection,
   ParagraphNode,
   TextNode,
+  type NodeKey,
 } from "lexical";
 import { brown } from "@radix-ui/colors";
 import {
@@ -56,11 +57,12 @@ import { useSettingsStore } from "@/store/settingsStore";
 import { useRevisionStore, type Revision } from "@/store/revisionStore";
 
 import "@mdxeditor/editor/style.css";
+import "./EditorPanel.css";
 
 interface TextGeneratorProps {
   isGenerating: boolean;
   setIsGenerating: React.Dispatch<React.SetStateAction<boolean>>;
-  abortControllerRef: React.MutableRefObject<AbortController | null>;
+  abortControllerRef: React.RefObject<AbortController | null>;
   markdownContent: string;
   setMarkdownContent: (content: string) => void;
   selectedFileId: string;
@@ -158,9 +160,10 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
               : writeSelection.focus;
 
             const parts = revised.split(/(\r?\n|\t)/);
-            const paragraphNodes: ParagraphNode[] = [];
             const length = parts.length;
             let paragraphNode = $createParagraphNode();
+            const paragraphNodes: ParagraphNode[] = [paragraphNode];
+            const revisedNodeKeys: NodeKey[] = [paragraphNode.getKey()];
             const parent = endPoint.getNode().getParent() || $getRoot();
             parent.insertAfter(paragraphNode);
             for (let i = 0; i < length; i++) {
@@ -169,16 +172,16 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
               if (part === "\n" || part === "\r\n") {
                 paragraphNodes.push(paragraphNode);
                 const newParagraphNode = $createParagraphNode();
+                revisedNodeKeys.push(newParagraphNode.getKey());
                 paragraphNode.insertAfter(newParagraphNode);
                 paragraphNode = newParagraphNode;
+                console.log("New paragraph created: " + paragraphNodes.length);
               } else if (part === "\t") {
                 paragraphNode.append($createTabNode());
               } else {
                 paragraphNode.append($createTextNode(part));
               }
             }
-
-            const revisedNodeKeys = paragraphNodes.map((node) => node.getKey());
 
             useRevisionStore.getState().setRevision(selectedFileId, {
               previousEditorState,
