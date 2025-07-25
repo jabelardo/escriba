@@ -6,7 +6,7 @@ import type { SerializedEditorState } from "lexical";
 export interface Revision {
   previousEditorState: SerializedEditorState;
   inRevisionNodeKeys: string[];
-  revisedNodeKey: string;
+  revisedNodeKeys: string[];
 }
 
 interface RevisionState {

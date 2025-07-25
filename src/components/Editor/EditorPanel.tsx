@@ -377,7 +377,9 @@ export const EditorPanel = () => {
         return theEditor.registerNodeTransform(
           ParagraphNode,
           (paragraphNode: ParagraphNode) => {
-            if (paragraphNode.getKey() === activeRevision?.revisedNodeKey) {
+            if (
+              activeRevision?.revisedNodeKeys.includes(paragraphNode.getKey())
+            ) {
               for (const child of paragraphNode.getChildren()) {
                 if (child instanceof TextNode) {
                   child.setStyle(`background-color: ${brown.brown10};`);
