@@ -54,7 +54,7 @@ import { fetchChatCompletion } from "@/lib/openrouter/chat";
 import { saveProjectFileContent } from "@/lib/github/files";
 import { useAuthStore } from "@/store/authStore";
 import { useSettingsStore } from "@/store/settingsStore";
-import { useRevisionStore } from "@/store/revisionStore";
+import { useRevisionStore, type Revision } from "@/store/revisionStore";
 
 import "@mdxeditor/editor/style.css";
 
@@ -93,8 +93,7 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
       const continuePrompt = activeContinuePrompt?.value || "";
       const revisePromptTemplate = activeRevisePrompt?.value || "";
       const model =
-        useProjectStore.getState().selectedProject?.model ||
-        "openrouter/auto";
+        useProjectStore.getState().selectedProject?.model || "openrouter/auto";
       const apiKey = import.meta.env.VITE_OPENROUTER_KEY;
       const temperature = 1;
       const maxTokens = 512;
@@ -150,9 +149,7 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
             const inRevisionNodeKeys = writeSelection
               .getNodes()
               .map((node) => node.getKey());
-            const previousEditorState = activeEditor
-              .getEditorState()
-              .toJSON();
+            const previousEditorState = activeEditor.getEditorState().toJSON();
 
             const parts = revised.split(/(\r?\n|\t)/);
             const newNodes: LexicalNode[] = [];
@@ -204,7 +201,9 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
       } else {
         console.error(err);
         alert(
-          `Failed to generate text: ${err instanceof Error ? err.message : String(err)}`,
+          `Failed to generate text: ${
+            err instanceof Error ? err.message : String(err)
+          }`,
         );
       }
     } finally {
@@ -220,6 +219,74 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
       disabled={isGenerating}
       title={isGenerating ? "Generating..." : "Generate Text"}
     />
+  );
+};
+
+interface ApproveRevisionProps {
+  activeRevision: Revision;
+  selectedFileId: string;
+}
+
+const ApproveRevision: React.FC<ApproveRevisionProps> = ({
+  activeRevision,
+  selectedFileId,
+}) => {
+  const activeEditor = useCellValue(activeEditor$);
+  const handleApproveRevision = () => {
+    if (!activeRevision || !activeEditor) {
+      return;
+    }
+    activeEditor?.update(() => {
+      activeRevision.inRevisionNodeKeys.forEach((key) => {
+        const inRevisionNode = $getNodeByKey(key);
+        inRevisionNode?.remove();
+      });
+      const revisedNode = $getNodeByKey(activeRevision.revisedNodeKey);
+      if (revisedNode instanceof ParagraphNode) {
+        for (const child of revisedNode.getChildren()) {
+          if (child instanceof TextNode) {
+            child.setStyle(`background-color: black;`);
+          }
+        }
+      }
+    });
+    useRevisionStore.getState().clearRevision(selectedFileId);
+  };
+
+  return (
+    <ButtonWithTooltip title="Approve Revision" onClick={handleApproveRevision}>
+      <CheckIcon />
+    </ButtonWithTooltip>
+  );
+};
+
+interface RejectRevisionProps {
+  activeRevision: Revision;
+  selectedFileId: string;
+}
+
+const RejectRevision: React.FC<RejectRevisionProps> = ({
+  activeRevision,
+  selectedFileId,
+}) => {
+  const activeEditor = useCellValue(activeEditor$);
+  const handleRejectRevision = () => {
+    if (!activeRevision) {
+      return;
+    }
+    activeEditor?.update(() => {
+      const original = activeEditor.parseEditorState(
+        activeRevision.previousEditorState,
+      );
+      activeEditor.setEditorState(original);
+    });
+    useRevisionStore.getState().clearRevision(selectedFileId);
+  };
+
+  return (
+    <ButtonWithTooltip title="Reject Revision" onClick={handleRejectRevision}>
+      <Cross2Icon />
+    </ButtonWithTooltip>
   );
 };
 
@@ -323,61 +390,6 @@ export const EditorPanel = () => {
     },
   });
 
-  const ApproveRevision = () => {
-    const activeEditor = useCellValue(activeEditor$);
-    const handleApproveRevision = () => {
-      if (!activeRevision || !activeEditor) {
-        return;
-      }
-      activeEditor?.update(() => {
-        activeRevision.inRevisionNodeKeys.forEach((key) => {
-          const inRevisionNode = $getNodeByKey(key);
-          inRevisionNode?.remove();
-        });
-        const revisedNode = $getNodeByKey(activeRevision.revisedNodeKey);
-        if (revisedNode instanceof ParagraphNode) {
-          for (const child of revisedNode.getChildren()) {
-            if (child instanceof TextNode) {
-              child.setStyle(`background-color: black;`);
-            }
-          }
-        }
-      });
-      useRevisionStore.getState().clearRevision(selectedFileId);
-    };
-
-    return (
-      <ButtonWithTooltip
-        title="Approve Revision"
-        onClick={handleApproveRevision}
-      >
-        <CheckIcon />
-      </ButtonWithTooltip>
-    );
-  };
-
-  const RejectRevision = () => {
-    const activeEditor = useCellValue(activeEditor$);
-    const handleRejectRevision = () => {
-      if (!activeRevision) {
-        return;
-      }
-      activeEditor?.update(() => {
-        const original = activeEditor.parseEditorState(
-          activeRevision.previousEditorState,
-        );
-        activeEditor.setEditorState(original);
-      });
-      useRevisionStore.getState().clearRevision(selectedFileId);
-    };
-
-    return (
-      <ButtonWithTooltip title="Reject Revision" onClick={handleRejectRevision}>
-        <Cross2Icon />
-      </ButtonWithTooltip>
-    );
-  };
-
   return (
     <Flex direction="column" height="100%" overflow="hidden" width="100%">
       <EditorTopBar filePath={selectedFile?.filePath} />
@@ -430,8 +442,14 @@ export const EditorPanel = () => {
                 {activeRevision && (
                   <>
                     <Separator />
-                    <ApproveRevision />
-                    <RejectRevision />
+                    <ApproveRevision
+                      activeRevision={activeRevision}
+                      selectedFileId={selectedFileId}
+                    />
+                    <RejectRevision
+                      activeRevision={activeRevision}
+                      selectedFileId={selectedFileId}
+                    />
                   </>
                 )}
               </>
