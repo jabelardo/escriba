@@ -6,7 +6,7 @@ import App from "./App.tsx";
 //import './index.css'
 import "@radix-ui/themes/styles.css";
 
-createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById("root") as HTMLElement).render(
   <StrictMode>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <Theme>

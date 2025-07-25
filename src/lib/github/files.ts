@@ -27,7 +27,6 @@ export async function fetchProjectFileContent(
 
   const decoded = atob(res.data.content);
   const content = new TextDecoder("utf-8").decode(
-    // eslint-disable-next-line @typescript-eslint/no-misused-spread
     Uint8Array.from([...decoded].map((char) => char.charCodeAt(0))),
   );
 

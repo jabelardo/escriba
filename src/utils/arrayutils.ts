@@ -2,8 +2,8 @@ import type { Prompt } from "@/types/settings";
 
 export const addOrUpdatePrompt = (
   prompt: Prompt,
-  prompts: Array<Prompt>,
-): Array<Prompt> => {
+  prompts: Prompt[],
+): Prompt[] => {
   const index = prompts.findIndex((f: Prompt) => prompt.id === f.id);
   //Not found, add on end.
   if (-1 === index) {
@@ -16,10 +16,7 @@ export const addOrUpdatePrompt = (
   return [...prompts.slice(0, index), prompt, ...prompts.slice(index + 1)];
 };
 
-export const removePrompt = (
-  promptId: string,
-  prompts: Array<Prompt>,
-): Array<Prompt> => {
+export const removePrompt = (promptId: string, prompts: Prompt[]): Prompt[] => {
   const index = prompts.findIndex((f: Prompt) => promptId === f.id);
   //Not found, return same reference.
   if (-1 === index) {

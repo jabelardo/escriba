@@ -4,12 +4,12 @@ import { Select } from "@radix-ui/themes";
 import { useMemo } from "react";
 import type { Prompt } from "@/types/settings";
 
-type PromptSelectorProps = {
+interface PromptSelectorProps {
   label: string;
   items: Prompt[];
   selectedPrompt: Prompt | undefined;
   onChange: (prompt: Prompt) => void;
-};
+}
 
 export const PromptSelector = ({
   label,

@@ -14,7 +14,8 @@ export default tseslint.config([
     files: ["**/*.{ts,tsx}"],
     extends: [
       js.configs.recommended,
-      ...tseslint.configs.strictTypeChecked,
+      ...tseslint.configs.recommended,
+      ...tseslint.configs.stylistic,
       reactX.configs["recommended-typescript"],
       reactDom.configs.recommended,
       reactHooks.configs["recommended-latest"],

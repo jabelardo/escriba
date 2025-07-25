@@ -9,12 +9,12 @@ import {
 } from "lucide-react";
 import type { Prompt } from "@/types/settings";
 
-type PromptComboboxProps = {
+interface PromptComboboxProps {
   label: string;
   items: Prompt[];
   selectedPrompt: Prompt | undefined | null;
   onChange: (prompt: Prompt) => void;
-};
+}
 
 export const PromptCombobox = ({
   label,
