@@ -29,7 +29,7 @@ import {
   createRootEditorSubscription$,
 } from "@mdxeditor/editor";
 import {
-  $createLineBreakNode,
+  $copyNode,
   $createParagraphNode,
   $createTabNode,
   $createTextNode,
@@ -39,7 +39,6 @@ import {
   $isRangeSelection,
   ParagraphNode,
   TextNode,
-  type LexicalNode,
 } from "lexical";
 import { brown } from "@radix-ui/colors";
 import {
@@ -139,7 +138,10 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
           signal: controller.signal,
         });
         const revised = llmResult.trim();
-
+        if (!revised) {
+          console.log("No text generated. Please try again.");
+          return;
+        }
         activeEditor.update(
           () => {
             const writeSelection = $getSelection();
@@ -151,32 +153,37 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
               .map((node) => node.getKey());
             const previousEditorState = activeEditor.getEditorState().toJSON();
 
-            const parts = revised.split(/(\r?\n|\t)/);
-            const newNodes: LexicalNode[] = [];
-            const length = parts.length;
-            for (let i = 0; i < length; i++) {
-              const part = parts[i];
-              if (part === "\n" || part === "\r\n") {
-                newNodes.push($createLineBreakNode());
-              } else if (part === "\t") {
-                newNodes.push($createTabNode());
-              } else {
-                newNodes.push($createTextNode(part));
-              }
-            }
             const endPoint = writeSelection.isBackward()
               ? writeSelection.anchor
               : writeSelection.focus;
 
-            const endNode = endPoint.getNode();
-            const paragraphNode = $createParagraphNode();
-            paragraphNode.append(...newNodes);
-            endNode.insertAfter(paragraphNode);
+            const parts = revised.split(/(\r?\n|\t)/);
+            const paragraphNodes: ParagraphNode[] = [];
+            const length = parts.length;
+            let paragraphNode = $createParagraphNode();
+            const parent = endPoint.getNode().getParent() || $getRoot();
+            parent.insertAfter(paragraphNode);
+            for (let i = 0; i < length; i++) {
+              const part = parts[i];
+              // TODO: Handle markdown formatting
+              if (part === "\n" || part === "\r\n") {
+                paragraphNodes.push(paragraphNode);
+                const newParagraphNode = $createParagraphNode();
+                paragraphNode.insertAfter(newParagraphNode);
+                paragraphNode = newParagraphNode;
+              } else if (part === "\t") {
+                paragraphNode.append($createTabNode());
+              } else {
+                paragraphNode.append($createTextNode(part));
+              }
+            }
+
+            const revisedNodeKeys = paragraphNodes.map((node) => node.getKey());
 
             useRevisionStore.getState().setRevision(selectedFileId, {
               previousEditorState,
               inRevisionNodeKeys,
-              revisedNodeKey: paragraphNode.getKey(),
+              revisedNodeKeys,
             });
           },
           { discrete: true },
@@ -241,14 +248,15 @@ const ApproveRevision: React.FC<ApproveRevisionProps> = ({
         const inRevisionNode = $getNodeByKey(key);
         inRevisionNode?.remove();
       });
-      const revisedNode = $getNodeByKey(activeRevision.revisedNodeKey);
-      if (revisedNode instanceof ParagraphNode) {
-        for (const child of revisedNode.getChildren()) {
-          if (child instanceof TextNode) {
-            child.setStyle(`background-color: black;`);
-          }
+
+      activeRevision.revisedNodeKeys.forEach((key) => {
+        const node = $getNodeByKey(key);
+        if (node instanceof ParagraphNode) {
+          const newNode = $createParagraphNode();
+          newNode.append(...node.getChildren().map($copyNode));
+          node.replace(newNode);
         }
-      }
+      });
     });
     useRevisionStore.getState().clearRevision(selectedFileId);
   };
