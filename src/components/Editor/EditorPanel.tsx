@@ -147,8 +147,6 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
         const textBeforeSelection =
           selectedIndex !== -1 ? fullText.substring(0, selectedIndex) : "";
 
-        console.log({ textBeforeSelection });
-
         const previousTextContext =
           textBeforeSelection.length > 0
             ? `[CONTEXT:begin]${textBeforeSelection}[CONTEXT:end]\n`
