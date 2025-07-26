@@ -33,7 +33,6 @@ export const PromptManagerDialog = ({
             items={prompts}
             selectedPrompt={{ id: promptId, value: promptValue }}
             onChange={(prompt) => {
-              console.log(prompt);
               setPromptId(prompt.id);
               setPromptValue(prompt.value);
             }}
@@ -59,7 +58,6 @@ export const PromptManagerDialog = ({
           <Dialog.Close>
             <Button
               onClick={() => {
-                console.log(promptId, promptValue);
                 updatePrompts({ id: promptId, value: promptValue });
               }}
               disabled={!promptId || !promptValue}

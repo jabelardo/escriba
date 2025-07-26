@@ -7,7 +7,7 @@ import type { Prompt } from "@/types/settings";
 interface PromptSelectorProps {
   label: string;
   items: Prompt[];
-  selectedPrompt: Prompt | undefined;
+  selectedPrompt: string | undefined;
   onChange: (prompt: Prompt) => void;
 }
 
@@ -19,7 +19,7 @@ export const PromptSelector = ({
 }: PromptSelectorProps) => {
   const collection = useMemo(() => items, [items]);
 
-  const selected = collection.find((i) => i.id === selectedPrompt?.id);
+  const selected = collection.find((i) => i.id === selectedPrompt);
 
   const sorted = [...collection].sort((a, b) => {
     const nameA = a.id.toLowerCase();

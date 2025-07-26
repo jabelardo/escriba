@@ -11,9 +11,9 @@ interface SettingsStore {
   systemPrompts: Prompt[];
   continuePrompts: Prompt[];
   revisePrompts: Prompt[];
-  activeSystemPrompt: Prompt | undefined;
-  activeContinuePrompt: Prompt | undefined;
-  activeRevisePrompt: Prompt | undefined;
+  activeSystemPrompt: string | undefined;
+  activeContinuePrompt: string | undefined;
+  activeRevisePrompt: string | undefined;
   setOpenrouterKey: (k: string) => void;
   setGithubToken: (t: string) => void;
   setFavoriteModels: (ids: string[]) => void;
@@ -46,14 +46,14 @@ export const useSettingsStore = create<SettingsStore>()(
       setFavoriteModels: (favoriteModels) => {
         set({ favoriteModels });
       },
-      setActiveSystemPrompt: (activeSystemPrompt) => {
-        set({ activeSystemPrompt });
+      setActiveSystemPrompt: (prompt) => {
+        set({ activeSystemPrompt: prompt?.id });
       },
-      setActiveContinuePrompt: (activeContinuePrompt) => {
-        set({ activeContinuePrompt });
+      setActiveContinuePrompt: (prompt) => {
+        set({ activeContinuePrompt: prompt?.id });
       },
-      setActiveRevisePrompt: (activeRevisePrompt) => {
-        set({ activeRevisePrompt });
+      setActiveRevisePrompt: (prompt) => {
+        set({ activeRevisePrompt: prompt?.id });
       },
       updateSystemPrompts: (prompt) => {
         set((state) => ({

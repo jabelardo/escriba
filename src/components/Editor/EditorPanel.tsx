@@ -84,9 +84,14 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
     activeEditor$,
     currentSelection$,
   );
-  const activeSystemPrompt = useSettingsStore((s) => s.activeSystemPrompt);
-  const activeContinuePrompt = useSettingsStore((s) => s.activeContinuePrompt);
-  const activeRevisePrompt = useSettingsStore((s) => s.activeRevisePrompt);
+  const activeSystemPromptId = useSettingsStore((s) => s.activeSystemPrompt);
+  const activeContinuePromptId = useSettingsStore(
+    (s) => s.activeContinuePrompt,
+  );
+  const activeRevisePromptId = useSettingsStore((s) => s.activeRevisePrompt);
+  const systemPrompts = useSettingsStore((s) => s.systemPrompts);
+  const continuePrompts = useSettingsStore((s) => s.continuePrompts);
+  const revisePrompts = useSettingsStore((s) => s.revisePrompts);
 
   const handleGenerateText = async () => {
     setIsGenerating(true);
@@ -103,11 +108,14 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
     };
 
     try {
-      const systemPrompt = activeSystemPrompt?.value || ""; // <<< BUG this does not get updated
+      const systemPrompt =
+        systemPrompts.find((p) => p.id === activeSystemPromptId)?.value || "";
       const continuePrompt =
-        activeContinuePrompt?.value || DEFAULT_CONTINUE_PROMPT; // <<< BUG this does not get updated
+        continuePrompts.find((p) => p.id === activeContinuePromptId)?.value ||
+        DEFAULT_CONTINUE_PROMPT;
       const revisePromptTemplate =
-        activeRevisePrompt?.value || DEFAULT_REVISION_PROMPT; // <<< BUG this does not get updated
+        revisePrompts.find((p) => p.id === activeRevisePromptId)?.value ||
+        DEFAULT_REVISION_PROMPT;
       const model =
         useProjectStore.getState().selectedProject?.model || "openrouter/auto";
       const apiKey = import.meta.env.VITE_OPENROUTER_KEY;
@@ -155,9 +163,6 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
           ?.replace("{{selectedText}}", selectedText)
           ?.replace("{{context}}", context);
         const promptText = `${systemPrompt}\n${revisePrompt}`;
-
-        console.log("Prompt Text for Revision:", promptText);
-        ///return;
 
         const llmResult = await fetchChatCompletion({
           apiKey,
