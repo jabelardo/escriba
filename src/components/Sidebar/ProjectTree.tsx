@@ -24,8 +24,8 @@ interface TreeNodeProps {
   contextFiles: Set<string>;
   expandedNodes: Set<string>;
   selectedNode: string | null;
-  onToggle: (nodeId: string) => void;
-  onSelect: (nodeId: string) => void;
+  onToggleFolder: (nodeId: string) => void;
+  onSelectFile: (nodeId: string) => void;
   onToggleContext: (fileId: string) => void;
   onCreateFile: (nodeId: string) => void;
 }
@@ -36,8 +36,8 @@ const TreeNode: React.FC<TreeNodeProps> = ({
   contextFiles,
   expandedNodes,
   selectedNode,
-  onToggle,
-  onSelect,
+  onToggleFolder,
+  onSelectFile,
   onToggleContext,
   onCreateFile,
 }) => {
@@ -48,11 +48,11 @@ const TreeNode: React.FC<TreeNodeProps> = ({
 
   const handleNavigationClick = useCallback(() => {
     if (isFolder) {
-      onToggle(node.id);
+      onToggleFolder(node.id);
     } else {
-      onSelect(node.id);
+      onSelectFile(node.id);
     }
-  }, [isFolder, node.id, onToggle, onSelect]);
+  }, [isFolder, node.id, onToggleFolder, onSelectFile]);
 
   const handleSelectFileClick = useCallback(
     (event: React.MouseEvent) => {
@@ -136,8 +136,8 @@ const TreeNode: React.FC<TreeNodeProps> = ({
               contextFiles={contextFiles}
               expandedNodes={expandedNodes}
               selectedNode={selectedNode}
-              onToggle={onToggle}
-              onSelect={onSelect}
+              onToggleFolder={onToggleFolder}
+              onSelectFile={onSelectFile}
               onToggleContext={onToggleContext}
               onCreateFile={onCreateFile}
             />
@@ -178,7 +178,7 @@ export const ProjectTree = () => {
     setCreateFileDialogOpen(true);
   }, []);
 
-  const toggleNode = useCallback((nodeId: string) => {
+  const toggleFolder = useCallback((nodeId: string) => {
     setExpandedNodes((prev) => {
       const next = new Set(prev);
       if (next.has(nodeId)) {
@@ -236,7 +236,7 @@ export const ProjectTree = () => {
     [selectedProject, token],
   );
 
-  const selectNode = useCallback(
+  const selectFile = useCallback(
     (nodeId: string) => {
       setSelectedNode(nodeId);
       onFileSelect(nodeId);
@@ -267,8 +267,8 @@ export const ProjectTree = () => {
         node={node}
         level={0}
         contextFiles={contextFiles}
-        onToggle={toggleNode}
-        onSelect={selectNode}
+        onToggleFolder={toggleFolder}
+        onSelectFile={selectFile}
         onToggleContext={toggleContext}
         onCreateFile={createFile}
         expandedNodes={expandedNodes}
@@ -280,10 +280,10 @@ export const ProjectTree = () => {
     expandedNodes,
     selectedNode,
     contextFiles,
-    toggleNode,
+    toggleFolder,
     toggleContext,
     createFile,
-    selectNode,
+    selectFile,
   ]);
 
   if (!selectedProject) {
