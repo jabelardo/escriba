@@ -19,6 +19,7 @@ interface ProjectStore {
   selectedProject?: Project;
   selectedBranch?: string;
   selectedFile?: ProjectFile;
+  contextFileContents?: ProjectFile[];
   addProject: (project: Project) => void;
   removeProject: (project: Project) => void;
   clearProjects: () => void;
@@ -28,6 +29,7 @@ interface ProjectStore {
   setSelectedFileContent: (content: string) => void;
   setSelectedFileSha: (sha: string) => void;
   setSelectedModel: (model: string) => void;
+  setContextFileContents: (contextFileContents: ProjectFile[]) => void;
 }
 
 export const useProjectStore = create<ProjectStore>()(
@@ -49,6 +51,7 @@ export const useProjectStore = create<ProjectStore>()(
           selectedProject: project,
           selectedBranch: project.branch || "main",
           selectedFile: undefined,
+          contextFileContents: undefined,
         });
       },
       setSelectedBranch: (branch) => {
@@ -106,6 +109,23 @@ export const useProjectStore = create<ProjectStore>()(
           projects: updatedProjects,
           selectedProject: { ...selectedProject, model: model },
         });
+      },
+      setContextFileContents: (newContextFileContents: ProjectFile[]) => {
+        const { contextFileContents } = get();
+
+        if (
+          (!contextFileContents && !newContextFileContents) ||
+          (contextFileContents?.length === 0 &&
+            newContextFileContents.length === 0)
+        ) {
+          return;
+        }
+        if (newContextFileContents?.length > 0) {
+          newContextFileContents = newContextFileContents.sort((a, b) =>
+            a.filePath.localeCompare(b.filePath),
+          );
+        }
+        set({ contextFileContents: newContextFileContents });
       },
     }),
     {

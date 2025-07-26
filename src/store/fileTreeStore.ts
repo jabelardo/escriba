@@ -1,13 +1,13 @@
 import { create } from "zustand";
 import type { FileTreeNode } from "@/lib/github/filetree";
 
-interface FileStore {
+interface FileTreeStore {
   fileTree: FileTreeNode | null;
   setFileTree: (fileTree: FileTreeNode) => void;
   fetchFileTree: (token: string, owner: string, repo: string) => Promise<void>;
 }
 
-export const useFileStore = create<FileStore>((set) => ({
+export const useFileTreeStore = create<FileTreeStore>((set) => ({
   fileTree: null,
   setFileTree: (fileTree) => {
     set({ fileTree });

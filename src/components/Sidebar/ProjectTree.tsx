@@ -12,7 +12,7 @@ import {
 import { Box, Flex, Text, Checkbox, IconButton } from "@radix-ui/themes";
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
-import { useFileStore } from "@/store/fileStore";
+import { useFileTreeStore } from "@/store/fileTreeStore";
 import { fetchProjectFileContent, createProjectFile } from "@/lib/github/files";
 import { CreateFileDialog } from "./CreateFileDialog";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -150,28 +150,82 @@ const TreeNode: React.FC<TreeNodeProps> = ({
 
 export const ProjectTree = () => {
   const selectedProject = useProjectStore((s) => s.selectedProject);
+  const contextFileContents = useProjectStore((s) => s.contextFileContents);
   const token = useAuthStore((s) => s.githubToken);
   const { addNotification } = useNotificationStore();
   const [contextFiles, setContextFiles] = useState<Set<string>>(new Set());
-  const { fileTree, fetchFileTree } = useFileStore();
+  const { fileTree, fetchFileTree } = useFileTreeStore();
   const rootNode = fileTree;
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [isCreateFileDialogOpen, setCreateFileDialogOpen] = useState(false);
   const [currentNode, setCurrentNode] = useState<string | null>(null);
 
-  const toggleContext = useCallback((fileId: string) => {
+  const toggleContext = useCallback((filePath: string) => {
     setContextFiles((prev) => {
       const next = new Set(prev);
-      if (next.has(fileId)) {
-        next.delete(fileId);
+      if (next.has(filePath)) {
+        next.delete(filePath);
       } else {
-        next.add(fileId);
+        next.add(filePath);
       }
-      console.log({ prev, next });
       return next;
     });
   }, []);
+
+  useEffect(() => {
+    const loadNewFiles = async () => {
+      if (!selectedProject || !token) {
+        return;
+      }
+      const currentLoadedFiles = Array.isArray(contextFileContents)
+        ? contextFileContents
+        : [];
+      const currentLoaded = new Set(currentLoadedFiles.map((f) => f.filePath));
+
+      const filesToLoad = [...contextFiles].filter(
+        (file) => !currentLoaded.has(file),
+      );
+      const filesToUnload = [...currentLoaded].filter(
+        (file) => !contextFiles.has(file),
+      );
+      // Unload removed files
+      const newContextFileContents =
+        currentLoadedFiles.filter(
+          (file) => !filesToUnload.includes(file.filePath),
+        ) || [];
+
+      // Load new files
+      for (const filePath of filesToLoad) {
+        try {
+          const content = await fetchProjectFileContent(
+            token,
+            selectedProject.owner,
+            selectedProject.repo,
+            filePath,
+          );
+          if (!content.content) {
+            continue;
+          }
+          newContextFileContents.push({
+            filePath,
+            content: content.content,
+            sha: content.sha,
+          });
+        } catch (error) {
+          console.error(`Failed to load ${filePath}:`, error);
+        }
+      }
+      if (newContextFileContents !== currentLoadedFiles) {
+        useProjectStore
+          .getState()
+          .setContextFileContents(newContextFileContents);
+      }
+    };
+
+    loadNewFiles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contextFiles, selectedProject, token]);
 
   const createFile = useCallback((nodeId: string) => {
     setCurrentNode(nodeId);

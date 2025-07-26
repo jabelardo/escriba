@@ -168,7 +168,6 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
             parent.insertAfter(paragraphNode);
             for (let i = 0; i < length; i++) {
               const part = parts[i];
-              // TODO: Handle markdown formatting
               if (part === "\n" || part === "\r\n") {
                 paragraphNodes.push(paragraphNode);
                 const newParagraphNode = $createParagraphNode();
@@ -179,6 +178,7 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
               } else if (part === "\t") {
                 paragraphNode.append($createTabNode());
               } else {
+                // TODO: Handle markdown formatting
                 paragraphNode.append($createTextNode(part));
               }
             }
