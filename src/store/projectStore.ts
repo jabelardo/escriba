@@ -6,6 +6,8 @@ export interface Project {
   repo: string;
   branch?: string;
   model?: string;
+  temperature?: number;
+  maxTokens?: number;
 }
 
 export interface ProjectFile {
@@ -30,6 +32,8 @@ interface ProjectStore {
   setSelectedFileSha: (sha: string) => void;
   setSelectedModel: (model: string) => void;
   setContextFileContents: (contextFileContents: ProjectFile[]) => void;
+  setMaxTokens: (maxTokens: number) => void;
+  setTemperature: (temperature: number) => void;
 }
 
 export const useProjectStore = create<ProjectStore>()(
@@ -126,6 +130,36 @@ export const useProjectStore = create<ProjectStore>()(
           );
         }
         set({ contextFileContents: newContextFileContents });
+      },
+      setMaxTokens: (maxTokens) => {
+        const { selectedProject, projects } = get();
+        if (!selectedProject) {
+          return;
+        }
+        const updatedProjects = projects.map((p) =>
+          p.owner === selectedProject.owner && p.repo === selectedProject.repo
+            ? { ...p, maxTokens: maxTokens }
+            : p,
+        );
+        set({
+          projects: updatedProjects,
+          selectedProject: { ...selectedProject, maxTokens: maxTokens },
+        });
+      },
+      setTemperature: (temperature) => {
+        const { selectedProject, projects } = get();
+        if (!selectedProject) {
+          return;
+        }
+        const updatedProjects = projects.map((p) =>
+          p.owner === selectedProject.owner && p.repo === selectedProject.repo
+            ? { ...p, temperature: temperature }
+            : p,
+        );
+        set({
+          projects: updatedProjects,
+          selectedProject: { ...selectedProject, temperature: temperature },
+        });
       },
     }),
     {

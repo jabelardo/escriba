@@ -7,7 +7,6 @@ import { getBranches } from "@/lib/github/branches";
 import { useAuthStore } from "@/store/authStore";
 
 export const SelectProjectDialog = () => {
-  const [open, setOpen] = useState(false);
   const projects = useProjectStore((s) => s.projects);
   const selectProject = useProjectStore((s) => s.selectProject);
   const setSelectedBranch = useProjectStore((s) => s.setSelectedBranch);
@@ -54,80 +53,67 @@ export const SelectProjectDialog = () => {
     if (selectedProject) {
       setSelectedBranch(selectedBranchLocal);
     }
-    setOpen(false);
   };
 
   return (
-    <>
-      <Button
-        size="2"
-        variant="ghost"
-        onClick={() => {
-          setOpen(true);
-        }}
-      >
-        Select Project and Branch
-      </Button>
+    <Dialog.Root>
+      <Dialog.Trigger>
+        <Button size="2" variant="ghost">
+          Select Project and Branch
+        </Button>
+      </Dialog.Trigger>
+      <Dialog.Content>
+        <Dialog.Title>Select a Project and Branch</Dialog.Title>
+        <Dialog.Description />
+        <Flex direction="column" gap="3">
+          <Select.Root
+            onValueChange={handleProjectChange}
+            defaultValue={
+              selectedProject
+                ? `${selectedProject.owner}/${selectedProject.repo}`
+                : ""
+            }
+          >
+            <Select.Trigger placeholder="Select a project…" />
+            <Select.Content>
+              {sortedProjects.map((proj) => (
+                <Select.Item
+                  key={`${proj.owner}/${proj.repo}`}
+                  value={`${proj.owner}/${proj.repo}`}
+                >
+                  {proj.owner}/{proj.repo}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Root>
 
-      <Dialog.Root
-        open={open}
-        onOpenChange={(e) => {
-          setOpen(e);
-        }}
-      >
-        <Dialog.Content>
-          <Dialog.Title>Select a Project and Branch</Dialog.Title>
-          <Dialog.Description />
-          <Flex direction="column" gap="3">
+          {selectedProject && (
             <Select.Root
-              onValueChange={handleProjectChange}
-              defaultValue={
-                selectedProject
-                  ? `${selectedProject.owner}/${selectedProject.repo}`
-                  : ""
-              }
+              onValueChange={handleBranchChange}
+              value={selectedBranchLocal}
             >
-              <Select.Trigger placeholder="Select a project…" />
+              <Select.Trigger placeholder="Select a branch…" />
               <Select.Content>
-                {sortedProjects.map((proj) => (
-                  <Select.Item
-                    key={`${proj.owner}/${proj.repo}`}
-                    value={`${proj.owner}/${proj.repo}`}
-                  >
-                    {proj.owner}/{proj.repo}
+                {branches.map((branch) => (
+                  <Select.Item key={branch} value={branch}>
+                    {branch}
                   </Select.Item>
                 ))}
               </Select.Content>
             </Select.Root>
-
-            {selectedProject && (
-              <Select.Root
-                onValueChange={handleBranchChange}
-                value={selectedBranchLocal}
-              >
-                <Select.Trigger placeholder="Select a branch…" />
-                <Select.Content>
-                  {branches.map((branch) => (
-                    <Select.Item key={branch} value={branch}>
-                      {branch}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
-            )}
-          </Flex>
-          <Flex gap="3" mt="4" justify="end">
-            <Button
-              variant="outline"
-              color="gray"
-              onClick={() => setOpen(false)}
-            >
+          )}
+        </Flex>
+        <Flex gap="3" mt="4" justify="end">
+          <Dialog.Close>
+            <Button variant="outline" color="gray">
               Cancel
             </Button>
+          </Dialog.Close>
+          <Dialog.Close>
             <Button onClick={handleConfirm}>Confirm</Button>
-          </Flex>
-        </Dialog.Content>
-      </Dialog.Root>
-    </>
+          </Dialog.Close>
+        </Flex>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 };

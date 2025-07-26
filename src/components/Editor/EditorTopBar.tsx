@@ -1,7 +1,7 @@
 import { Flex, Text } from "@radix-ui/themes";
 import { useProjectStore } from "@/store/projectStore";
-import { LLMModelSelect } from "./LLMModelSelect";
 import { ThemeToggleButton } from "../ui/ThemeToggleButton";
+import { ModelSetupDialog } from "./ModelSetupDialog";
 
 interface EditorTopBarProps {
   filePath?: string;
@@ -24,7 +24,7 @@ export const EditorTopBar = ({ filePath }: EditorTopBarProps) => {
         <Text size="2">📝 {fileName}</Text>
         <Flex align="center" gap="2">
           <Text size="2">🤖</Text>
-          <LLMModelSelect />
+          <ModelSetupDialog />
         </Flex>
       </Flex>
 

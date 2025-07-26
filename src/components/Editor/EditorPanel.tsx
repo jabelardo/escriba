@@ -96,8 +96,10 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
       const model =
         useProjectStore.getState().selectedProject?.model || "openrouter/auto";
       const apiKey = import.meta.env.VITE_OPENROUTER_KEY;
-      const temperature = 1;
-      const maxTokens = 512;
+      const temperature =
+        useProjectStore.getState().selectedProject?.temperature || 1;
+      const maxTokens =
+        useProjectStore.getState().selectedProject?.maxTokens || 512;
 
       if (!apiKey) {
         alert("OpenRouter API key is missing");
