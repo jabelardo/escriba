@@ -19,7 +19,7 @@ const SettingsDialog = () => {
   return (
     <Dialog.Root>
       <Dialog.Trigger>
-        <Button size="2" variant="ghost">
+        <Button size="4" variant="ghost" mt="4">
           🛠️ Settings
         </Button>
       </Dialog.Trigger>
@@ -49,24 +49,19 @@ export const Sidebar = () => {
     >
       <Heading size="6">📚 Escriba</Heading>
 
-      <Text mt="4">★ Project:</Text>
+      <Text mt="4" size="4">
+        ★ Project:
+      </Text>
       <AddOrCreateProjectDialog />
       <SelectProjectDialog />
       <RemoveProjectButton />
       <Separator />
-      <Text mt="4">📝 Files:</Text>
+      <Text mt="4" size="4">
+        📝 Files:
+      </Text>
       <ProjectTree />
       <Separator />
       <SettingsDialog />
-      <Button
-        size="2"
-        variant="ghost"
-        onClick={() => {
-          alert("Logout");
-        }}
-      >
-        🔒 Logout
-      </Button>
     </Flex>
   );
 };
