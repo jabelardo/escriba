@@ -6,9 +6,9 @@ export async function getBranches(
   repo: string,
 ): Promise<string[]> {
   const octokit = new Octokit({ auth });
-  const branches = await octokit.request("GET /repos/{owner}/{repo}/branches", {
+  const branches = await octokit.repos.listBranches({
     owner,
     repo,
   });
-  return branches.data.map((branch: any) => branch.name);
+  return branches.data.map((branch: { name: string }) => branch.name);
 }

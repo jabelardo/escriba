@@ -1,6 +1,5 @@
 // src/store/revisionStore.ts
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import type { SerializedEditorState } from "lexical";
 
 export interface Revision {
@@ -10,37 +9,19 @@ export interface Revision {
 }
 
 interface RevisionState {
-  revisions: Record<string, Revision>;
-  setRevision: (fileKey: string, revision: Revision) => void;
-  getRevision: (fileKey: string) => Revision | null;
-  clearRevision: (fileKey: string) => void;
-  hasRevision: (fileKey: string) => boolean;
+  revision: Revision | null;
+  setRevision: (revision: Revision) => void;
+  clearRevision: () => void;
 }
 
-export const useRevisionStore = create<RevisionState>()(
-  persist(
-    (set, get) => ({
-      revisions: {},
+export const useRevisionStore = create<RevisionState>()((set) => ({
+  revision: null,
 
-      setRevision: (fileKey, revision) => {
-        set((state) => ({
-          revisions: { ...state.revisions, [fileKey]: revision },
-        }));
-      },
+  setRevision: (revision) => {
+    set({ revision });
+  },
 
-      getRevision: (fileKey) => get().revisions[fileKey] ?? null,
-
-      clearRevision: (fileKey) => {
-        set((state) => {
-          delete state.revisions[fileKey];
-          return { revisions: state.revisions };
-        });
-      },
-
-      hasRevision: (fileKey) => fileKey in get().revisions,
-    }),
-    {
-      name: "escriba-revision",
-    },
-  ),
-);
+  clearRevision: () => {
+    set({ revision: null });
+  },
+}));

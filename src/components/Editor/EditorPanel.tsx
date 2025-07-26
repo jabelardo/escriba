@@ -75,7 +75,6 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
   abortControllerRef,
   markdownContent,
   setMarkdownContent,
-  selectedFileId,
 }) => {
   const [activeEditor, readSelection] = useCellValues(
     activeEditor$,
@@ -184,7 +183,7 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
               }
             }
 
-            useRevisionStore.getState().setRevision(selectedFileId, {
+            useRevisionStore.getState().setRevision({
               previousEditorState,
               inRevisionNodeKeys,
               revisedNodeKeys,
@@ -240,7 +239,6 @@ interface ApproveRevisionProps {
 
 const ApproveRevision: React.FC<ApproveRevisionProps> = ({
   activeRevision,
-  selectedFileId,
 }) => {
   const activeEditor = useCellValue(activeEditor$);
   const handleApproveRevision = () => {
@@ -262,7 +260,7 @@ const ApproveRevision: React.FC<ApproveRevisionProps> = ({
         }
       });
     });
-    useRevisionStore.getState().clearRevision(selectedFileId);
+    useRevisionStore.getState().clearRevision();
   };
 
   return (
@@ -277,10 +275,7 @@ interface RejectRevisionProps {
   selectedFileId: string;
 }
 
-const RejectRevision: React.FC<RejectRevisionProps> = ({
-  activeRevision,
-  selectedFileId,
-}) => {
+const RejectRevision: React.FC<RejectRevisionProps> = ({ activeRevision }) => {
   const activeEditor = useCellValue(activeEditor$);
   const handleRejectRevision = () => {
     if (!activeRevision) {
@@ -292,7 +287,7 @@ const RejectRevision: React.FC<RejectRevisionProps> = ({
       );
       activeEditor.setEditorState(original);
     });
-    useRevisionStore.getState().clearRevision(selectedFileId);
+    useRevisionStore.getState().clearRevision();
   };
 
   return (
@@ -321,7 +316,7 @@ export const EditorPanel = () => {
   const selectedFileId = `${
     useProjectStore.getState().selectedProject?.repo || ""
   }/${selectedFile?.filePath || ""}`;
-  const activeRevision = useRevisionStore((s) => s.revisions[selectedFileId]);
+  const activeRevision = useRevisionStore((s) => s.revision);
 
   useEffect(() => {
     originalMarkdownRef.current = markdownContent;
