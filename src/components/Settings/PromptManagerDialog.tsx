@@ -42,6 +42,7 @@ export const PromptManagerDialog = ({
             Content
           </Text>
           <TextArea
+            rows={10}
             placeholder="Prompt content..."
             value={promptValue}
             onChange={(e) => {

@@ -59,6 +59,10 @@ import { useRevisionStore, type Revision } from "@/store/revisionStore";
 
 import "@mdxeditor/editor/style.css";
 import "./EditorPanel.css";
+import {
+  DEFAULT_CONTINUE_PROMPT,
+  DEFAULT_REVISION_PROMPT,
+} from "@/utils/consts";
 
 interface TextGeneratorProps {
   isGenerating: boolean;
@@ -89,10 +93,21 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
+    const buildPromptContext = () => {
+      const promptContext = useProjectStore
+        .getState()
+        .contextFileContents?.map((file) => {
+          return `[${file.filePath}:Start]\n${file.content}\n[${file.filePath}:End]`;
+        });
+      return promptContext?.join("\n") + "\n" || "";
+    };
+
     try {
-      const systemPrompt = activeSystemPrompt?.value || "";
-      const continuePrompt = activeContinuePrompt?.value || "";
-      const revisePromptTemplate = activeRevisePrompt?.value || "";
+      const systemPrompt = activeSystemPrompt?.value || ""; // <<< BUG this does not get updated
+      const continuePrompt =
+        activeContinuePrompt?.value || DEFAULT_CONTINUE_PROMPT; // <<< BUG this does not get updated
+      const revisePromptTemplate =
+        activeRevisePrompt?.value || DEFAULT_REVISION_PROMPT; // <<< BUG this does not get updated
       const model =
         useProjectStore.getState().selectedProject?.model || "openrouter/auto";
       const apiKey = import.meta.env.VITE_OPENROUTER_KEY;
@@ -124,14 +139,25 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
         const textBeforeSelection =
           selectedIndex !== -1 ? fullText.substring(0, selectedIndex) : "";
 
-        const context =
+        console.log({ textBeforeSelection });
+
+        const previousTextContext =
           textBeforeSelection.length > 0
-            ? `[CONTEXT:begin]${textBeforeSelection}[CONTEXT:end]`
+            ? `[CONTEXT:begin]${textBeforeSelection}[CONTEXT:end]\n`
             : "";
+
+        const context = buildPromptContext() + previousTextContext;
+
+        const userInput = prompt("Enter your instructions for the revision:");
+
         const revisePrompt = revisePromptTemplate
+          ?.replace("{{userInput}}", userInput || "")
           ?.replace("{{selectedText}}", selectedText)
           ?.replace("{{context}}", context);
         const promptText = `${systemPrompt}\n${revisePrompt}`;
+
+        console.log("Prompt Text for Revision:", promptText);
+        ///return;
 
         const llmResult = await fetchChatCompletion({
           apiKey,
@@ -176,7 +202,6 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
                 revisedNodeKeys.push(newParagraphNode.getKey());
                 paragraphNode.insertAfter(newParagraphNode);
                 paragraphNode = newParagraphNode;
-                console.log("New paragraph created: " + paragraphNodes.length);
               } else if (part === "\t") {
                 paragraphNode.append($createTabNode());
               } else {
@@ -194,7 +219,8 @@ const TextGenerator: React.FC<TextGeneratorProps> = ({
           { discrete: true },
         );
       } else {
-        const promptText = `${systemPrompt}\n${continuePrompt}\n\n${markdownContent}`;
+        const context = buildPromptContext();
+        const promptText = `${systemPrompt}\n${continuePrompt}\n${context}${markdownContent}`;
         const generatedText = await fetchChatCompletion({
           apiKey,
           model,
@@ -339,7 +365,6 @@ export const EditorPanel = () => {
   };
 
   const handleSaveFile = async () => {
-    console.log("Saving file:", { selectedFile, token });
     if (!selectedFile || !token) {
       return;
     }
