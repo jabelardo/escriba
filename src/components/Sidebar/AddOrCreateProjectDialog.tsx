@@ -1,7 +1,7 @@
 import { Flex, Text, Button, Dialog, TextField } from "@radix-ui/themes";
 import { useState } from "react";
 import { Octokit } from "@octokit/rest";
-//import type { RequestError } from "@octokit/types";
+import type { RequestError } from "@octokit/request-error";
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -210,10 +210,10 @@ const AddOrCreateProjectDialog = () => {
 
     try {
       await octokit.rest.repos.get({ owner, repo });
-    } catch (err: any) {
-      console.log("GitHub error:", err);
-      const errorMessage = err?.response?.data?.message
-        ? err?.response?.data?.message + `: ${owner}/${repo}`
+    } catch (e) {
+      const message = getGitHubErrorMessage(e);
+      const errorMessage = message
+        ? `${message}: ${owner}/${repo}`
         : "Unknown GitHub error";
       addNotification({
         type: "error",
@@ -281,15 +281,26 @@ const AddOrCreateProjectDialog = () => {
       setMissing([]);
       setOpenMissingFoldersDialog(false);
       setInput("");
-    } catch (e: any) {
+    } catch (e) {
+      const message = getGitHubErrorMessage(e);
       addNotification({
         type: "error",
         title: "Folder creation failed",
-        message: e?.response?.data?.message || e.message || "Unknown error",
+        message: message || "Unknown error",
       });
     } finally {
       setLoading(false);
     }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getGitHubErrorMessage = (e: any) => {
+    const err = e as RequestError;
+    if (!err) {
+      console.error("Unknown GitHub error:", e);
+    }
+    const message = (err?.response?.data as { message?: string })?.message;
+    return message;
   };
 
   const handleCreate = async () => {
@@ -327,14 +338,12 @@ const AddOrCreateProjectDialog = () => {
         message: `${owner}/${repo} has been created and initialized successfully.`,
       });
       setRepoName("");
-    } catch (e: any) {
+    } catch (e) {
+      const message = getGitHubErrorMessage(e);
       addNotification({
         type: "error",
         title: "Project creation failed",
-        message:
-          e?.response?.data?.errors?.[0]?.message ||
-          e.message ||
-          "Unknown error",
+        message: message || "Unknown error",
       });
     }
 

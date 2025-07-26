@@ -55,12 +55,12 @@ export const SelectProjectDialog = () => {
           <Flex gap="3" mt="4" justify="end">
             <Dialog.Close>
               <Button
-                variant="outline"
+                variant="solid"
                 onClick={() => {
                   setOpen(false);
                 }}
               >
-                Cancel
+                Close
               </Button>
             </Dialog.Close>
           </Flex>

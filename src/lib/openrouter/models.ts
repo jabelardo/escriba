@@ -16,7 +16,22 @@ export async function fetchOpenRouterModels(
 
   const json = await res.json();
 
-  return (json.data ?? []).map((item: any) => ({
+  interface OpenRouterModelResponse {
+    id: string;
+    name: string;
+    context_length?: number;
+    top_provider?: { context_length?: number };
+    pricing?: {
+      prompt?: string;
+      completion?: string;
+      image?: string;
+      request?: string;
+      web_search?: string;
+      internal_reasoning?: string;
+    };
+  }
+
+  return (json.data ?? []).map((item: OpenRouterModelResponse) => ({
     id: item.id,
     name: item.name,
     context_length:

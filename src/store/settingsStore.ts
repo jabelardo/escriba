@@ -27,7 +27,7 @@ interface SettingsStore {
 
 export const useSettingsStore = create<SettingsStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       openrouterKey: "",
       githubToken: "",
       favoriteModels: [],

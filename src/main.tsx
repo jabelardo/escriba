@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Theme } from "@radix-ui/themes";
 import { ThemeProvider } from "next-themes";
 import App from "./App.tsx";
-//import './index.css'
+import "./index.css";
 import "@radix-ui/themes/styles.css";
 
 createRoot(document.getElementById("root") as HTMLElement).render(

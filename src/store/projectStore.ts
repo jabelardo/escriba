@@ -48,6 +48,7 @@ export const useProjectStore = create<ProjectStore>()(
         set({
           selectedProject: project,
           selectedBranch: project.branch || "main",
+          selectedFile: undefined,
         });
       },
       setSelectedBranch: (branch) => {

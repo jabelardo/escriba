@@ -32,8 +32,8 @@ export const useRevisionStore = create<RevisionState>()(
 
       clearRevision: (fileKey) => {
         set((state) => {
-          const { [fileKey]: _, ...rest } = state.revisions;
-          return { revisions: rest };
+          delete state.revisions[fileKey];
+          return { revisions: state.revisions };
         });
       },
 

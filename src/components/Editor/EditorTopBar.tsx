@@ -11,7 +11,7 @@ export const EditorTopBar = ({ filePath }: EditorTopBarProps) => {
   const project = useProjectStore((s) => s.selectedProject);
   const branch = useProjectStore((s) => s.selectedBranch);
 
-  const fileName = filePath?.split("/").pop() || "Untitled.md";
+  const fileName = filePath?.split("/").pop() || "No file selected";
 
   return (
     <Flex align="center" justify="between" p="3" gap="4">

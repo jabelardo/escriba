@@ -1,6 +1,6 @@
 "use client";
 
-import { Flex } from "@radix-ui/themes";
+import { Callout, Flex } from "@radix-ui/themes";
 import { useState, useRef, useEffect } from "react";
 import { useProjectStore } from "@/store/projectStore";
 import {
@@ -48,6 +48,7 @@ import {
   StopIcon,
   CheckIcon,
   Cross2Icon,
+  InfoCircledIcon,
 } from "@radix-ui/react-icons";
 import { EditorTopBar } from "./EditorTopBar";
 import { fetchChatCompletion } from "@/lib/openrouter/chat";
@@ -406,70 +407,82 @@ export const EditorPanel = () => {
   return (
     <Flex direction="column" height="100%" overflow="hidden" width="100%">
       <EditorTopBar filePath={selectedFile?.filePath} />
-      <MDXEditor
-        autoFocus
-        ref={mdxEditorRef}
-        key={selectedFile?.filePath ?? "editor"}
-        markdown={markdownContent}
-        onChange={handleEditorChange}
-        plugins={[
-          headingsPlugin(),
-          listsPlugin(),
-          quotePlugin(),
-          tablePlugin(),
-          thematicBreakPlugin(),
-          markdownShortcutPlugin(), // you need the corresponding plugins for the markdown blocks listed before markdownShortcutPlugin() to enable support.
-          revisionStylePlugin(),
-          toolbarPlugin({
-            toolbarContents: () => (
-              <>
-                <UndoRedo />
-                <Separator />
-                <BoldItalicUnderlineToggles />
-                <ListsToggle />
-                <BlockTypeSelect />
-                <InsertTable />
-                <InsertThematicBreak />
-                <Separator />
-                <TextGenerator
-                  isGenerating={isGenerating}
-                  setIsGenerating={setIsGenerating}
-                  abortControllerRef={abortControllerRef}
-                  markdownContent={markdownContent}
-                  setMarkdownContent={setMarkdownContent}
-                  selectedFileId={selectedFileId}
-                />
-                <ButtonWithTooltip
-                  children={<StopIcon />}
-                  onClick={handleStopGenerateText}
-                  disabled={!isGenerating}
-                  title={"Stop Generating"}
-                />
-                <Separator />
-                <ButtonWithTooltip
-                  children={<ArchiveIcon />}
-                  onClick={handleSaveFile}
-                  disabled={!isFileChanged}
-                  title={"Save File"}
-                />
-                {activeRevision && (
-                  <>
-                    <Separator />
-                    <ApproveRevision
-                      activeRevision={activeRevision}
-                      selectedFileId={selectedFileId}
-                    />
-                    <RejectRevision
-                      activeRevision={activeRevision}
-                      selectedFileId={selectedFileId}
-                    />
-                  </>
-                )}
-              </>
-            ),
-          }),
-        ]}
-      />
+      {selectedFile?.filePath ? (
+        <MDXEditor
+          autoFocus
+          ref={mdxEditorRef}
+          key={selectedFile?.filePath ?? "editor"}
+          markdown={markdownContent}
+          onChange={handleEditorChange}
+          plugins={[
+            headingsPlugin(),
+            listsPlugin(),
+            quotePlugin(),
+            tablePlugin(),
+            thematicBreakPlugin(),
+            markdownShortcutPlugin(), // you need the corresponding plugins for the markdown blocks listed before markdownShortcutPlugin() to enable support.
+            revisionStylePlugin(),
+            toolbarPlugin({
+              toolbarContents: () => (
+                <>
+                  <UndoRedo />
+                  <Separator />
+                  <BoldItalicUnderlineToggles />
+                  <ListsToggle />
+                  <BlockTypeSelect />
+                  <InsertTable />
+                  <InsertThematicBreak />
+                  <Separator />
+                  <TextGenerator
+                    isGenerating={isGenerating}
+                    setIsGenerating={setIsGenerating}
+                    abortControllerRef={abortControllerRef}
+                    markdownContent={markdownContent}
+                    setMarkdownContent={setMarkdownContent}
+                    selectedFileId={selectedFileId}
+                  />
+                  <ButtonWithTooltip
+                    children={<StopIcon />}
+                    onClick={handleStopGenerateText}
+                    disabled={!isGenerating}
+                    title={"Stop Generating"}
+                  />
+                  <Separator />
+                  <ButtonWithTooltip
+                    children={<ArchiveIcon />}
+                    onClick={handleSaveFile}
+                    disabled={!isFileChanged}
+                    title={"Save File"}
+                  />
+                  {activeRevision && (
+                    <>
+                      <Separator />
+                      <ApproveRevision
+                        activeRevision={activeRevision}
+                        selectedFileId={selectedFileId}
+                      />
+                      <RejectRevision
+                        activeRevision={activeRevision}
+                        selectedFileId={selectedFileId}
+                      />
+                    </>
+                  )}
+                </>
+              ),
+            }),
+          ]}
+        />
+      ) : (
+        <Callout.Root>
+          <Callout.Icon>
+            <InfoCircledIcon />
+          </Callout.Icon>
+          <Callout.Text>
+            Please select a file to edit. Use the sidebar to navigate your
+            project files.
+          </Callout.Text>
+        </Callout.Root>
+      )}
     </Flex>
   );
 };
