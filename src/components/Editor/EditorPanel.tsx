@@ -331,16 +331,13 @@ const RejectRevision: React.FC<RejectRevisionProps> = ({ activeRevision }) => {
 export const EditorPanel = () => {
   const mdxEditorRef = useRef<MDXEditorMethods | null>(null);
   const selectedFile = useProjectStore((s) => s.selectedFile);
-  const setMarkdownContent = useProjectStore((s) => s.setSelectedFileContent);
+  const setMarkdownContent = useProjectStore((s) => s.setSelectedFileCurrentContent);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isFileChanged, setIsFileChanged] = useState(false);
+  const isFileChanged = useProjectStore((s) => s.isSelectedFileChanged());
   const token = useAuthStore((s) => s.githubToken);
 
-  const markdownContent = useProjectStore((s) => {
-    const c = s.selectedFile?.content;
-    return typeof c === "string" ? c : "";
-  });
+  const markdownContent = selectedFile?.currentContent || "";
 
   const originalMarkdownRef = useRef(markdownContent);
 
@@ -348,11 +345,6 @@ export const EditorPanel = () => {
     useProjectStore.getState().selectedProject?.repo || ""
   }/${selectedFile?.filePath || ""}`;
   const activeRevision = useRevisionStore((s) => s.revision);
-
-  useEffect(() => {
-    originalMarkdownRef.current = markdownContent;
-    setIsFileChanged(false);
-  }, [markdownContent, selectedFile?.filePath]);
 
   useEffect(() => {
     if (markdownContent && mdxEditorRef.current) {
@@ -383,7 +375,7 @@ export const EditorPanel = () => {
         owner: project.owner,
         repo: project.repo,
         path: selectedFile.filePath,
-        content: selectedFile.content,
+        content: selectedFile.currentContent,
         sha: selectedFile.sha,
         message: `Update ${selectedFile.filePath}`,
         branch: project.branch ?? "main",
@@ -396,16 +388,9 @@ export const EditorPanel = () => {
   };
 
   const handleEditorChange = (
-    markdown: string,
-    initialMarkdownNormalize: boolean,
+    markdown: string
   ) => {
     setMarkdownContent(markdown);
-    if (initialMarkdownNormalize) {
-      originalMarkdownRef.current = markdown;
-      setIsFileChanged(false);
-    } else {
-      setIsFileChanged(markdown !== originalMarkdownRef.current);
-    }
   };
 
   const revisionStylePlugin = realmPlugin({

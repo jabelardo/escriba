@@ -284,6 +284,7 @@ export const ProjectTree = () => {
       useProjectStore.getState().setSelectedFile({
         filePath,
         content: content.content,
+        currentContent: content.content,
         sha: content.sha,
       });
     },

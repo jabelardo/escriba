@@ -16,19 +16,24 @@ export interface ProjectFile {
   sha: string;
 }
 
+export interface EditorFile extends ProjectFile {
+  currentContent: string;
+}
+
 interface ProjectStore {
   projects: Project[];
   selectedProject?: Project;
   selectedBranch?: string;
-  selectedFile?: ProjectFile;
+  selectedFile?: EditorFile;
   contextFileContents?: ProjectFile[];
+  isSelectedFileChanged: () => boolean;
   addProject: (project: Project) => void;
   removeProject: (project: Project) => void;
   clearProjects: () => void;
   selectProject: (project: Project) => void;
   setSelectedBranch: (branch: string) => void;
-  setSelectedFile: (projectFile: ProjectFile) => void;
-  setSelectedFileContent: (content: string) => void;
+  setSelectedFile: (selectedFile: EditorFile) => void;
+  setSelectedFileCurrentContent: (currentContent: string) => void;
   setSelectedFileSha: (sha: string) => void;
   setSelectedModel: (model: string) => void;
   setContextFileContents: (contextFileContents: ProjectFile[]) => void;
@@ -39,6 +44,13 @@ interface ProjectStore {
 export const useProjectStore = create<ProjectStore>()(
   persist(
     (set, get) => ({
+      isSelectedFileChanged: () => {
+        const { selectedFile } = get();
+        if (!selectedFile) {
+          return false;
+        }
+        return selectedFile.content !== selectedFile.currentContent;
+      },
       projects: [],
       addProject: (project) => {
         const exists = get().projects.some(
@@ -82,15 +94,15 @@ export const useProjectStore = create<ProjectStore>()(
       clearProjects: () => {
         set({ projects: [] });
       },
-      setSelectedFile: (projectFile) => {
-        set({ selectedFile: projectFile });
+      setSelectedFile: (selectedFile) => {
+        set({ selectedFile: { ...selectedFile, currentContent: selectedFile.content } });
       },
-      setSelectedFileContent: (content) => {
+      setSelectedFileCurrentContent: (currentContent) => {
         const { selectedFile } = get();
         if (!selectedFile) {
           return;
         }
-        set({ selectedFile: { ...selectedFile, content: content } });
+        set({ selectedFile: { ...selectedFile, currentContent: currentContent } });
       },
       setSelectedFileSha: (sha) => {
         const { selectedFile } = get();
